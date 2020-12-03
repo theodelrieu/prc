@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "prc"
+version = "0.1.0"
+description = ""
+authors = ["Théo DELRIEU <delrieutheo@gmail.com>"]
+license = "BSL 1.0"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+conan = "^1.31.4"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
