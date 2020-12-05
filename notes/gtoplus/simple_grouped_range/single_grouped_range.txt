@@ -1,0 +1,15 @@
+Single range, grouped. No categories
+
+The range is composed of AA, KJo, QTs.
+
+100% weights.
+
+There are 3 groups:
+
+- Group 1: KJo
+- Group 2: AA
+- Group 3: QTs
+
+==========================================
+
+Total size: 3674 bytes

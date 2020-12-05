@@ -6,20 +6,9 @@ conan_basic_setup(TARGETS)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-add_library(prc src/add.cpp)
-target_include_directories(prc
-  PUBLIC 
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-)
-
-target_link_libraries(prc CONAN_PKG::boost)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include(CTest)
 
-if (BUILD_TESTING)
-  enable_testing()
-  add_subdirectory(test)
-endif()
-
+add_subdirectory(lib)
+add_subdirectory(app)

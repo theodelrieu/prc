@@ -1,8 +1,15 @@
 [requires]
-boost/1.74.0
+boost/1.75.0
+lyra/1.5.1
+mgs/0.1.2
 
 [build_requires]
 catch2/2.13.3
 
 [generators]
 cmake
+ycm
+
+[options]
+boost:i18n_backend=icu
+boost:without_locale=False

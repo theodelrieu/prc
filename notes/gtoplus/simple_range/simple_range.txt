@@ -1,0 +1,36 @@
+Single range. No categories.
+
+The range is composed of AA, KJo, QTs.
+
+100% weights.
+
+==========================================
+
+Total size: 3518 bytes
+
+whole_file: separator + top_level_name + meta_info + separator + range_name + range_info + range_content + (169 * buffer_block) + (4 * byte(0x00)) + EOF
+
+meta_info: (4 * byte(0x00)) + byte(0x01) + (8 * byte(0x00)) + byte(0x01) + (byte(0x00) * 3)
+range_info: (4 * byte(0x00)) + (2 * byte(0x01)) + (11 * byte(0x00))
+
+range_name: utf16_string
+range_content: utf16_string
+top_level_name: utf16_string("default_name")
+
+separator: 0x39 0x30 0x00 0x00
+utf16_string: bytes(0x65, 0x00, 0x00, 0x00, 0xff, 0xfe) + nb_bytes_to_encode_size + utf16_len(nb_bytes_to_encode_size) + (2 * utf16_len * byte)
+
+buffer_block: byte(0x84) + (3 * byte(0x00)) + byte(0x01) + (13 * byte(0x00)) + byte(0xf0) + byte(0x3f)
+nb_bytes_to_encode_size: (2 * byte(0xff)) | byte(0xff) # max size is 30 000, so there can be at most two 0xff bytes.
+
+===========================================================
+
+Needs more info:
+
+- find out what meta_info is composed of
+- same for range_info
+- why does the first byte of buffer_block is 0x80 in different newdefs3.txt (99.99% sure it's a bit field)
+
+TODO:
+
+- Write range_content grammar (without sanity checks like duplication et .al)

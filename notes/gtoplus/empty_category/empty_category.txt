@@ -1,0 +1,27 @@
+Empty category. No ranges.
+
+==========================
+
+Total size: 110 bytes
+
+whole_file: separator + top_level_name + meta_info + separator + category_name + category_info + EOF
+
+
+meta_info: (4 * byte(0x00)) + byte(0x01) + (8 * byte(0x00)) + byte(0x01) + (byte(0x00) * 3)
+category_info: (4 * byte(0x00)) + byte(0x01) + (12 * byte(0x00))
+
+top_level_name: utf16_string("default_name")
+
+category_name: utf16_string
+
+separator: first_separator_half + second_separator_half
+first_separator_half: 0x39 0x30 0x00 0x00
+second_separator_half: 0x65 0x00 0x00 0x00 0xff 0xfe 0xff
+utf16_string: utf16_len(x) + 2 * x * (1 byte)
+utf16_len: uint(1 * byte)
+
+========================
+
+range_info only differs from range_info in content value, not length.
+
+The 5th byte is set in both case, but the 6th is only set for the range.

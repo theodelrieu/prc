@@ -1,0 +1,77 @@
+Grammar
+=======
+
+Non-terminals
+-------------
+
+whole_file: separator + top_level_name + meta_info +
+            (category | range | grouped_range)* + EOF
+
+range: separator + range_name + range_info + range_content +
+       (169 * buffer_block) + (4 * byte(0x00))
+
+grouped_range: separator + range_name + grouped_range_info + (separator + group_name + group_info)+ + range_content + (combo_info)+ + (4 * byte(0x00))
+
+category: separator + category_name + category_info
+
+category_info: (4 * byte(0x00)) + byte(0x01) + (8 * byte(0x00)) + category_nb_ranges + (3 * byte(0x00))
+
+range_info: (4 * byte(0x00)) + (2 * byte(0x01)) + (11 * byte(0x00))
+grouped_range_info: (5 * byte(0x00)) + byte(0x01) + (7 * byte(0x00)) + range_nb_subgroups + (3 * byte(0x00))
+
+group_info: (4* byte(0x00)) + byte(0x01) + byte(0x02) + (3 * byte(0x00)) + group_index + (7 * byte(0x00))
+
+group_name: utf16_string
+
+range_name: utf16_string
+range_content: utf16_string 
+top_level_name: utf16_string("default_name")
+
+utf16_string: bytes(0x65, 0x00, 0x00, 0x00, 0xff, 0xfe) + nb_bytes_to_encode_size + utf16_len(nb_bytes_to_encode_size) + (2 * utf16_len * byte)
+
+Terminals
+---------
+
+meta_info: (4 * byte(0x00)) + byte(0x01) + (8 * byte(0x00)) + byte(0x01) + (byte(0x00) * 3)
+separator: 0x39 0x30 0x00 0x00
+
+category_nb_ranges: uint(1 * byte)
+
+buffer_block: byte(0x84) + (3 * byte(0x00)) + byte(0x01) + (13 * byte(0x00)) + byte(0xf0) + byte(0x3f)
+nb_bytes_to_encode_size: (2 * byte(0xff)) | byte(0xff) # max size is 30 000, so there can be at most two 0xff bytes.
+group_index: uint(1 * byte)
+
+=======
+
+TODO:
+
+- Write range_content grammar (without sanity checks like duplication et .al, separate grammar!)
+- Buffer blocks are used to store hands grouping information, dig deeper into that
+- First buffer_block byte is a bitfield, find out the values.
+
+
+
+range_info only differs from category_info in content value, not length.
+They are the same thing in fact, but need to clear out values before merging both. Might not even want to merge them at all, it could lead to ambiguities?
+
+The 5th byte is set for categories and ungrouped ranges cases, but the 6th is only set for the range.
+
+So 6th byte is most likely isRange?
+
+is it really category_nb_ranges? or category_nb_elems? Need to try with one category that has both
+
+those buffer_blocks are combo info, almost 100% sure it starts with AA
+
+
+
+buffer_block: byte(0x84) + (3 * byte(0x00)) + byte(0x01) + (3 * byte(0x00)) + byte(0x01) FIND OUT WHY + (9 * byte(0x00)) + byte(0xf0) + byte(0x3f)
+
+At the end of combo info: byte(0x03) + (7 * byte(0x00)) + byte(0x01) + (3 * byte(0x00)) + byte(0x02) + (3 * byte(0x00)) + EOF
+
+two following buffer_block have: 
+
+00000360  00 00 00 00 00 00 00 00  00 00 00 00 00 f0 3f 84  |..............?.|
+00000370  00 00 00 01 00 00 00 02  00 00 00 00 00 00 00 00  |................|
+00000380  00 f0 3f 84 00 00 00 01  00 00 00 02 00 00 00 00  |..?.............|
+00000390  00 00 00 00 00 f0 3f 84  00 00 00 01 00 00 00 00  |......?.........|
+

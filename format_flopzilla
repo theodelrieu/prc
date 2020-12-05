@@ -1,0 +1,112 @@
+common pattern:
+
+39 30 00 00 65 00 00 00 ff fe ff XX (1 byte)
+
+common pattern is found at the very beginning of the file.
+
+XX = nb of UTF-16 code points (= uint8_t * 2) that are real data (e.g. range names or range content.
+
+-> (XX * UTF-16 code point) = top range name ("default_name")
+
+-> 00 (* 4) + 01 + 00 (* 8) + NN + 00 (* 3) + common pattern (simple range)
+-> 01 + 00 (* 12) + NN + 00 (* 3) + common pattern (category)
+
+1th byte = isCategory ??
+5th byte = isStandaloneRange ??
+6th byte = isRangeInCategory ??
+
+TODO check what's in "other ranges"... I'm lost here
+"nested" has:
+-> 00 (* 13) + 01 + 00 (*3) + common pattern
+
+last category has the "simple range" pattern, very weird
+
+first range of last category:
+
+-> 00 (*4) + 01 + 01(!) + 00 (* 11) + half common pattern
+
+
+NN = number of subelements (here: categories)
+TODO find a name for this sequence (section delimiter?)
+
+----
+
+With two main categories (i.e. "My ranges"/"other ranges"), there is a 0x01 at the end of the first category name, but not the second...
+So 01 + 00 (* 12) + NN + 00 (* 3) + common pattern
+
+NN is number of ranges (including grouped ranges but not recursive)
+
+and second category is "normal"
+
+-> 00 (* 4) + 01 + 00 (* 8) + NN + 00 (* 3) + common pattern
+
+
+----
+
+
+-> (XX * UTF-16 code point) = range name
+
+-> 00 (* 4) + 01 + 00 (* 8) + NN + 00 (* 3) + common pattern
+
+-> (XX * UTF-16 code point) = range content
+
+-> 00 (* 4) + 01 + 01 + 00 (* 11) + (65 00 00 00 ff fe ff) = why only a subpart of common pattern??
+
+-> (XX * UTF-16 code point) = range content, exactly the same content wut...
+
+-> (80 + 00 (* 3) + 01 + 00 (* 13) + f0 + 3f) = empty buffer block?
+
+80 or 84 WTF!
+repeated until end of file
+
+
+-> 00 (* 4) + EOF
+
+
+empty subcategory is :
+
+-> common pattern + 00 (* 4) + 01 + 00 (* 12)
+
+-> common pattern + 00 (* 4) + 01 + 00 (* 12) + EOF
+
+
+
+It seems that 39 30 is a marker of some sort, for important categories like weights, next range, etc
+
+3384 free bytes of empty buffer blocks between sections, TODO try with more combos, there is most likely a max space.
+3384 bytes of empty buffer block between end of first range content (byte 0x80) to beginning of next section (byte 0x39)
+3384 again between end of second section's content (byte 0x80) to third section (byte 0x39)
+3384 again between end of third section's content (byte 0x80) to fourth section (byte 0x39)
+
+3384 dec = D38 hex
+
+seems like 3384 is the correct spacing between all sections. Need to try with more categories/subranges to see how it fluctuates.
+Would be very weird to waste so much space for nothing...
+
+so it's 169 * empty buffer block + 4 * 0x0
+
+
+after 2nd range name of first category:
+
+-> 00 (* 5) + 01 + 00 (* 11) + half common pattern
+ same thing for 3rd range name of 1st category
+
+ need to try several subcategories and simple ranges to see if the 1 byte offset difference is linked to that...
+
+ ------
+
+ Grouped ranges
+
+Common pattern + range name
+
+-> 00 (* 5) + 01 + 00 (* 7) + NN + 00 (* 3)
+
+NN is the number of subgroups
+
+-> common pattern + range name
+-> 00 (* 5) + 02(!) + 00 (* 3) + XX + 00 (*7)
+
+02 is depth level from the root?
+XX is index of subgroup (0 for first)
+
+I don't get how they know which hands are in which subranges

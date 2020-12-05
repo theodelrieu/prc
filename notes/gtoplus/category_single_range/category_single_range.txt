@@ -1,0 +1,37 @@
+Single category with one range.
+
+==========================
+
+Total size: 3573 bytes
+
+whole_file: separator + top_level_name + meta_info + separator +
+            category_name + category_info +
+            (category_nb_ranges * range) + EOF
+
+
+meta_info: (4 * byte(0x00)) + byte(0x01) + (8 * byte(0x00)) + byte(0x01) + (byte(0x00) * 3)
+category_info: (4 * byte(0x00)) + byte(0x01) + (8 * byte(0x00)) + category_nb_ranges + (3 * byte(0x00))
+range_info: (4 * byte(0x00)) + (2 * byte(0x01)) + (11 * byte(0x00)) + second_separator_half
+
+range: separator + range_name + range_info + range_content + (169 * buffer_block)
+range_name: utf16_string
+range_content: utf16_string
+
+top_level_name: utf16_string("default_name")
+
+category_name: utf16_string
+
+separator: first_separator_half + second_separator_half
+first_separator_half: 0x39 0x30 0x00 0x00
+second_separator_half: 0x65 0x00 0x00 0x00 0xff 0xfe 0xff
+utf16_string: utf16_len(x) + 2 * x * (1 byte)
+utf16_len: uint(1 * byte)
+category_nb_ranges: uint(1 * byte)
+
+========================
+
+range_info only differs from category_info in content value, not length.
+
+The 5th byte is set in both case, but the 6th is only set for the range.
+
+Maybe separator is only first_separator_half, and second_separator_half is part of utf16_string

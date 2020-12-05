@@ -1,0 +1,65 @@
+diff --git a/include/boost/spirit/home/support/char_encoding/unicode.hpp b/include/boost/spirit/home/support/char_encoding/unicode.hpp
+index 974bef41d..07b9e16c0 100644
+--- a/include/boost/spirit/home/support/char_encoding/unicode.hpp
++++ b/include/boost/spirit/home/support/char_encoding/unicode.hpp
+@@ -22,7 +22,7 @@ namespace boost { namespace spirit { namespace char_encoding
+     ///////////////////////////////////////////////////////////////////////////
+     struct unicode
+     {
+-        typedef ::boost::uint32_t char_type;
++        typedef char32_t char_type;
+         typedef ::boost::uint32_t classify_type;
+ 
+     ///////////////////////////////////////////////////////////////////////////
+diff --git a/include/boost/spirit/home/support/char_set/range_functions.hpp b/include/boost/spirit/home/support/char_set/range_functions.hpp
+index 9afde6f48..7b00ac50d 100644
+--- a/include/boost/spirit/home/support/char_set/range_functions.hpp
++++ b/include/boost/spirit/home/support/char_set/range_functions.hpp
+@@ -47,14 +47,14 @@ namespace boost { namespace spirit { namespace support { namespace detail
+         // another range 'other', so we can merge them
+ 
+         typedef typename Range::value_type value_type;
+-        typedef integer_traits<value_type> integer_traits;
++        typedef std::numeric_limits<value_type> limits;
+ 
+         value_type decr_first =
+-            range.first == integer_traits::const_min
++            range.first == limits::min()
+             ? range.first : range.first-1;
+ 
+         value_type incr_last =
+-            range.last == integer_traits::const_max
++            range.last == limits::max()
+             ? range.last : range.last+1;
+ 
+         return (decr_first <= other.last) && (incr_last >= other.first);
+diff --git a/test/x3/symbols3.cpp b/test/x3/symbols3.cpp
+index d732ca3dd..bace674dc 100644
+--- a/test/x3/symbols3.cpp
++++ b/test/x3/symbols3.cpp
+@@ -6,8 +6,10 @@
+     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+ =============================================================================*/
+ 
++#define BOOST_SPIRIT_X3_DEBUG
+ #include <boost/detail/lightweight_test.hpp>
+ #include <boost/spirit/home/x3.hpp>
++#include <boost/spirit/home/support/char_encoding/unicode.hpp>
+ #include <boost/fusion/include/at.hpp>
+ #include <boost/fusion/include/vector.hpp>
+ #include <boost/fusion/include/adapt_struct.hpp>
+@@ -82,5 +84,14 @@ main()
+         BOOST_TEST((test("a3", foo)));
+     }
+ 
++    { // unicode | construction from initializer-list
++        using namespace boost::spirit;
++        x3::symbols_parser<char_encoding::unicode, int> foo = {{U"a1", 1}, {U"a2", 2}, {U"a3", 3}};
++
++        int r;
++        BOOST_TEST((test_attr(U"a3", foo, r)));
++        BOOST_TEST(r == 3);
++    }
++
+     return boost::report_errors();
+ }

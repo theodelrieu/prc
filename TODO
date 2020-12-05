@@ -1,0 +1,13 @@
+lib:
+
+serialize pio/equilab
+implement method to get the unassigned range from a range (1 depth subranges traversal needed)
+handle 0depth folder equilab
+handle nesting
+
+
+
+app:
+
+find a repl lib
+try to nest
