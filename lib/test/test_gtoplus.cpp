@@ -41,7 +41,6 @@ TEST_CASE("gtoplus format tests", "[gtoplus]")
   {
     auto const content =
         read_all(fs::path{testDataPath} / "gtoplus" / "empty.txt");
-    std::cout << content.size() << std::endl;
     auto ctx = init_context(content, gtoplus::parser::info());
 
     gtoplus::parser::ast::info info;

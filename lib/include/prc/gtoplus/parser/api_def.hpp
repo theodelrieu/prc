@@ -33,16 +33,16 @@ struct error_handler
   }
 };
 
-unsigned encoded_size_bytes;
-unsigned encoded_size;
+unsigned encoded_size_bytes = 1;
+unsigned encoded_size = 2;
 struct _encoded_size_bytes;
 struct _encoded_size;
 
-auto const separator =
-    x3::lexeme[x3::lit('\x39') >> '\x30' >> '\x00' >> '\x00'];
+auto const separator = x3::omit[x3::byte_(0x39) >> x3::byte_(0x30) >>
+                                x3::byte_(0x00) >> x3::byte_(0x00)];
 auto const utf16_string_header =
-    x3::lexeme[x3::lit('\x65') >> '\x00' >> '\x00' >> '\x00' >> '\xff' >>
-               '\xfe'];
+    x3::omit[x3::byte_(0x65) >> x3::repeat(3)[x3::byte_(0x00)] >>
+             x3::byte_(0xff) >> x3::byte_(0xfe)];
 
 auto const encoded_size_bytes_cb = [](auto& ctx) {
   std::cout << "encoded_size_bytes = " << _attr(ctx).size() << std::endl;
@@ -82,22 +82,23 @@ auto const bytes_to_entry_type = [](auto& ctx) {
     _val(ctx) = ast::entry_type::category;
 };
 
-// might need std::ref
-auto const utf8_string =
-    prc::parser::as<std::string>[x3::with<_encoded_size_bytes>(
-        encoded_size_bytes)[x3::with<_encoded_size>(
-        encoded_size)[utf16_string_header > *x3::char_]]];
-// x3::repeat(1, 2)[x3::char_("\xff")][encoded_size_bytes_cb] >
-// x3::repeat(encoded_size_bytes)[x3::char_][encoded_size_cb] >
-// x3::repeat(encoded_size * 2)[x3::char_][utf16_to_utf8_cb]]]];
+// create own parser for those strings
+// see coliru.stacked-crooked.com/a/87053f2f3f00862d
+auto const utf8_string = prc::parser::as<std::string>[x3::with<
+    _encoded_size_bytes>(encoded_size_bytes)[x3::with<_encoded_size>(
+    encoded_size)[utf16_string_header >
+                  x3::repeat(1, 2)[x3::char_("\xff")][encoded_size_bytes_cb] >
+                  x3::repeat(encoded_size_bytes)[x3::char_][encoded_size_cb] >
+                  x3::repeat(encoded_size * 2)[x3::char_][utf16_to_utf8_cb]]]];
 
 auto const entry_type = prc::parser::as<ast::entry_type>[x3::repeat(
     2)[x3::char_][bytes_to_entry_type]];
 
 info_type const _info = "info";
-auto const _info_def = separator >> utf8_string >>
-                       x3::repeat(4)[x3::lit("\x00")] >> entry_type
-                       >> x3::repeat(3)[x3::lit("\x00")] >> x3::little_dword;
+auto const _info_def =
+    x3::no_skip[separator >> utf8_string >> x3::repeat(4)[x3::lit("\x00")] >>
+                entry_type >> x3::repeat(3)[x3::lit("\x00")] >>
+                x3::little_dword];
 
 BOOST_SPIRIT_DEFINE(_info);
 
