@@ -1,13 +1,15 @@
 lib:
 
-serialize pio/equilab
-implement method to get the unassigned range from a range (1 depth subranges traversal needed)
+expose function to expand hands from hand_range
+function to convert between list of ratios and percentages
+
 handle 0depth folder equilab
-handle nesting
 
+gtoplus - 
 
+figure out hand order
+parser requires adding std::string context to prc::parser (since input is pure binary with some UTF16/UTF8)
 
 app:
 
 find a repl lib
-try to nest

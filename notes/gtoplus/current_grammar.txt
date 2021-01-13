@@ -37,9 +37,12 @@ separator: 0x39 0x30 0x00 0x00
 
 category_nb_ranges: uint(1 * byte)
 
-buffer_block: byte(0x84) + (3 * byte(0x00)) + byte(0x01) + (13 * byte(0x00)) + byte(0xf0) + byte(0x3f)
+buffer_block: byte(0x84) + (3 * byte(0x00)) + nb_groups + (3 * byte(0x00)) + (nb_groups * (group_index + 3 * byte(0x00))) + (nb_groups * ratio)
 nb_bytes_to_encode_size: (2 * byte(0xff)) | byte(0xff) # max size is 30 000, so there can be at most two 0xff bytes.
 group_index: uint(1 * byte)
+
+nb_groups: uint(1 * byte)
+ratio: radix_float(8 * byte)
 
 =======
 
@@ -48,6 +51,7 @@ TODO:
 - Write range_content grammar (without sanity checks like duplication et .al, separate grammar!)
 - Buffer blocks are used to store hands grouping information, dig deeper into that
 - First buffer_block byte is a bitfield, find out the values.
+
 
 
 
@@ -65,6 +69,9 @@ those buffer_blocks are combo info, almost 100% sure it starts with AA
 
 
 buffer_block: byte(0x84) + (3 * byte(0x00)) + byte(0x01) + (3 * byte(0x00)) + byte(0x01) FIND OUT WHY + (9 * byte(0x00)) + byte(0xf0) + byte(0x3f)
+5th byte is the number of groups for the hand
+
+last eight bytes are just radix point representation of floats
 
 At the end of combo info: byte(0x03) + (7 * byte(0x00)) + byte(0x01) + (3 * byte(0x00)) + byte(0x02) + (3 * byte(0x00)) + EOF
 
@@ -75,3 +82,12 @@ two following buffer_block have:
 00000380  00 f0 3f 84 00 00 00 01  00 00 00 02 00 00 00 00  |..?.............|
 00000390  00 00 00 00 00 f0 3f 84  00 00 00 01 00 00 00 00  |......?.........|
 
+
+
+------
+
+hand order in buffer_block:
+
+AA AKs-A2s
+AKo-KK, KQs-K2s
+ etc
