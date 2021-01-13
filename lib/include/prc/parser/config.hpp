@@ -10,11 +10,11 @@ namespace prc::parser
 {
 namespace x3 = boost::spirit::x3;
 
-template <typename Iterator>
+template <typename Iterator, typename Skipper>
 using context_type =
     x3::context<x3::error_handler_tag,
                 x3::error_handler<Iterator>,
-                x3::phrase_parse_context<x3::unicode::space_type>::type>;
+                typename x3::phrase_parse_context<Skipper>::type>;
 }
 
 namespace boost::spirit::x3::traits

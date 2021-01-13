@@ -16,11 +16,11 @@ namespace x3 = boost::spirit::x3;
 namespace
 {
 template <typename Parser>
-auto init_context(std::u32string const& input,
+auto init_context(std::string const& input,
                   Parser p,
                   std::ostream& error_stream = std::cerr)
 {
-  x3::error_handler<std::u32string::const_iterator> error_handler(
+  x3::error_handler<std::string::const_iterator> error_handler(
       input.begin(), input.end(), error_stream);
 
   return x3::with<x3::error_handler_tag>(std::move(error_handler))[p];
@@ -33,12 +33,12 @@ TEST_CASE("parser tests", "[parser]")
   {
     SECTION("valid")
     {
-      auto const input = U"Ah,Kc,2d,9s"s;
+      auto const input = "Ah,Kc,2d,9s"s;
 
-      auto ctx = init_context(input, parser::card() % x3::unicode::lit(U","));
+      auto ctx = init_context(input, parser::card() % x3::lit(","));
       std::vector<parser::ast::card> cards;
-      REQUIRE_NOTHROW(x3::phrase_parse(
-          input.begin(), input.end(), ctx, x3::unicode::space, cards));
+      REQUIRE_NOTHROW(
+          x3::phrase_parse(input.begin(), input.end(), ctx, x3::space, cards));
       REQUIRE(cards.size() == 4);
 
       CHECK(cards[0].rank == prc::rank::ace);
@@ -53,21 +53,21 @@ TEST_CASE("parser tests", "[parser]")
 
     SECTION("invalid suit")
     {
-      auto const input = U"Aq"s;
+      auto const input = "Aq"s;
       auto ctx = init_context(input, parser::card());
       parser::ast::card card;
-      auto const r = x3::phrase_parse(
-          input.begin(), input.end(), ctx, x3::unicode::space, card);
+      auto const r =
+          x3::phrase_parse(input.begin(), input.end(), ctx, x3::space, card);
       CHECK_FALSE(r);
     }
 
     SECTION("invalid rank")
     {
-      auto const input = U"Sh"s;
+      auto const input = "Sh"s;
       auto ctx = init_context(input, parser::card());
       parser::ast::card card;
-      auto const r = x3::phrase_parse(
-          input.begin(), input.end(), ctx, x3::unicode::space, card);
+      auto const r =
+          x3::phrase_parse(input.begin(), input.end(), ctx, x3::space, card);
       CHECK_FALSE(r);
     }
   }
@@ -76,12 +76,12 @@ TEST_CASE("parser tests", "[parser]")
   {
     SECTION("valid")
     {
-      auto const input = U"Ah2h,KcQd,2d2s,9s2h"s;
+      auto const input = "Ah2h,KcQd,2d2s,9s2h"s;
 
-      auto ctx = init_context(input, parser::combo() % x3::unicode::lit(U","));
+      auto ctx = init_context(input, parser::combo() % x3::lit(","));
       std::vector<parser::ast::combo> combos;
-      REQUIRE_NOTHROW(x3::phrase_parse(
-          input.begin(), input.end(), ctx, x3::unicode::space, combos));
+      REQUIRE_NOTHROW(
+          x3::phrase_parse(input.begin(), input.end(), ctx, x3::space, combos));
       REQUIRE(combos.size() == 4);
 
       CHECK(combos[0].first_card.rank == prc::rank::ace);
@@ -107,61 +107,61 @@ TEST_CASE("parser tests", "[parser]")
 
     SECTION("invalid first suit")
     {
-      auto const input = U"AxQh"s;
+      auto const input = "AxQh"s;
       auto ctx = init_context(input, parser::combo());
       parser::ast::combo combo;
-      auto const r = x3::phrase_parse(
-          input.begin(), input.end(), ctx, x3::unicode::space, combo);
+      auto const r =
+          x3::phrase_parse(input.begin(), input.end(), ctx, x3::space, combo);
       CHECK_FALSE(r);
     }
 
     SECTION("invalid first rank")
     {
-      auto const input = U"XhQs"s;
+      auto const input = "XhQs"s;
       auto ctx = init_context(input, parser::combo());
       parser::ast::combo combo;
-      auto const r = x3::phrase_parse(
-          input.begin(), input.end(), ctx, x3::unicode::space, combo);
+      auto const r =
+          x3::phrase_parse(input.begin(), input.end(), ctx, x3::space, combo);
       CHECK_FALSE(r);
     }
 
     SECTION("invalid second suit")
     {
-      auto const input = U"AhQx"s;
+      auto const input = "AhQx"s;
       auto ctx = init_context(input, parser::combo());
       parser::ast::combo combo;
-      auto const r = x3::phrase_parse(
-          input.begin(), input.end(), ctx, x3::unicode::space, combo);
+      auto const r =
+          x3::phrase_parse(input.begin(), input.end(), ctx, x3::space, combo);
       CHECK_FALSE(r);
     }
 
     SECTION("invalid second rank")
     {
-      auto const input = U"AhXs"s;
+      auto const input = "AhXs"s;
       auto ctx = init_context(input, parser::combo());
       parser::ast::combo combo;
-      auto const r = x3::phrase_parse(
-          input.begin(), input.end(), ctx, x3::unicode::space, combo);
+      auto const r =
+          x3::phrase_parse(input.begin(), input.end(), ctx, x3::space, combo);
       CHECK_FALSE(r);
     }
 
     SECTION("invalid rank order")
     {
-      auto const input = U"KhAs"s;
+      auto const input = "KhAs"s;
       auto ctx = init_context(input, parser::combo());
       parser::ast::combo combo;
-      auto const r = x3::phrase_parse(
-          input.begin(), input.end(), ctx, x3::unicode::space, combo);
+      auto const r =
+          x3::phrase_parse(input.begin(), input.end(), ctx, x3::space, combo);
       CHECK_FALSE(r);
     }
 
     SECTION("same cards")
     {
-      auto const input = U"KhKh"s;
+      auto const input = "KhKh"s;
       auto ctx = init_context(input, parser::combo());
       parser::ast::combo combo;
-      auto const r = x3::phrase_parse(
-          input.begin(), input.end(), ctx, x3::unicode::space, combo);
+      auto const r =
+          x3::phrase_parse(input.begin(), input.end(), ctx, x3::space, combo);
       CHECK_FALSE(r);
     }
   }
@@ -170,13 +170,12 @@ TEST_CASE("parser tests", "[parser]")
   {
     SECTION("valid")
     {
-      auto const input = U"ATo,AKs,J7o,Q9s"s;
+      auto const input = "ATo,AKs,J7o,Q9s"s;
 
-      auto ctx =
-          init_context(input, parser::unpaired_hand() % x3::unicode::lit(U","));
+      auto ctx = init_context(input, parser::unpaired_hand() % x3::lit(","));
       std::vector<parser::ast::unpaired_hand> hands;
-      REQUIRE_NOTHROW(x3::phrase_parse(
-          input.begin(), input.end(), ctx, x3::unicode::space, hands));
+      REQUIRE_NOTHROW(
+          x3::phrase_parse(input.begin(), input.end(), ctx, x3::space, hands));
       REQUIRE(hands.size() == 4);
 
       CHECK(hands[0].first_rank == prc::rank::ace);
@@ -198,11 +197,11 @@ TEST_CASE("parser tests", "[parser]")
 
     SECTION("invalid")
     {
-      auto const input = U"AKa"s;
+      auto const input = "AKa"s;
       auto ctx = init_context(input, parser::unpaired_hand());
       parser::ast::unpaired_hand hand;
-      auto const r = x3::phrase_parse(
-          input.begin(), input.end(), ctx, x3::unicode::space, hand);
+      auto const r =
+          x3::phrase_parse(input.begin(), input.end(), ctx, x3::space, hand);
       CHECK_FALSE(r);
     }
   }
@@ -211,16 +210,12 @@ TEST_CASE("parser tests", "[parser]")
   {
     SECTION("valid")
     {
-      auto const input = U"AA,33,77,JJ"s;
+      auto const input = "AA,33,77,JJ"s;
 
-      auto ctx =
-          init_context(input, parser::paired_hand() % x3::unicode::lit(U","));
+      auto ctx = init_context(input, parser::paired_hand() % x3::lit(","));
       std::vector<parser::ast::paired_hand> hands;
-      REQUIRE_NOTHROW(x3::phrase_parse(input.begin(),
-                                       input.end(),
-                                       ctx > x3::eoi,
-                                       x3::unicode::space,
-                                       hands));
+      REQUIRE_NOTHROW(x3::phrase_parse(
+          input.begin(), input.end(), ctx > x3::eoi, x3::space, hands));
       REQUIRE(hands.size() == 4);
 
       CHECK(hands[0].rank == prc::rank::ace);
@@ -231,11 +226,11 @@ TEST_CASE("parser tests", "[parser]")
 
     SECTION("invalid")
     {
-      auto const input = U"AKs"s;
+      auto const input = "AKs"s;
       auto ctx = init_context(input, parser::paired_hand());
       parser::ast::paired_hand hand;
-      auto const r = x3::phrase_parse(
-          input.begin(), input.end(), ctx, x3::unicode::space, hand);
+      auto const r =
+          x3::phrase_parse(input.begin(), input.end(), ctx, x3::space, hand);
       CHECK_FALSE(r);
     }
   }
@@ -244,15 +239,12 @@ TEST_CASE("parser tests", "[parser]")
   {
     SECTION("valid")
     {
-      auto const input = U"AA,32o,77,KQs"s;
+      auto const input = "AA,32o,77,KQs"s;
 
-      auto ctx = init_context(input, parser::hand() % x3::unicode::lit(U","));
+      auto ctx = init_context(input, parser::hand() % x3::lit(","));
       std::vector<parser::ast::hand> hands;
-      REQUIRE_NOTHROW(x3::phrase_parse(input.begin(),
-                                       input.end(),
-                                       ctx > x3::eoi,
-                                       x3::unicode::space,
-                                       hands));
+      REQUIRE_NOTHROW(x3::phrase_parse(
+          input.begin(), input.end(), ctx > x3::eoi, x3::space, hands));
       REQUIRE(hands.size() == 4);
 
       CHECK(boost::get<parser::ast::paired_hand>(hands[0]).rank ==
@@ -277,11 +269,11 @@ TEST_CASE("parser tests", "[parser]")
 
     SECTION("invalid")
     {
-      auto const input = U"AAs,KJo"s;
+      auto const input = "AAs,KJo"s;
       std::vector<parser::ast::hand> hands;
       auto ctx = init_context(input, (parser::hand() % ',') >> x3::eoi);
-      auto const r = x3::phrase_parse(
-          input.begin(), input.end(), ctx, x3::unicode::space, hands);
+      auto const r =
+          x3::phrase_parse(input.begin(), input.end(), ctx, x3::space, hands);
       CHECK_FALSE(r);
     }
   }
@@ -290,13 +282,12 @@ TEST_CASE("parser tests", "[parser]")
   {
     SECTION("valid")
     {
-      auto const input = U"22-66,KTo+,77+,98s+,J8o-JTo,AKs-87s"s;
+      auto const input = "22-66,KTo+,77+,98s+,J8o-JTo,AKs-87s"s;
 
-      auto ctx =
-          init_context(input, parser::hand_range() % x3::unicode::lit(U","));
+      auto ctx = init_context(input, parser::hand_range() % x3::lit(","));
       std::vector<parser::ast::hand_range> hand_ranges;
       REQUIRE_NOTHROW(x3::phrase_parse(
-          input.begin(), input.end(), ctx, x3::unicode::space, hand_ranges));
+          input.begin(), input.end(), ctx, x3::space, hand_ranges));
       REQUIRE(hand_ranges.size() == 6);
 
       CHECK((hand_ranges[0] ==
@@ -333,20 +324,20 @@ TEST_CASE("parser tests", "[parser]")
 
     SECTION("invalid")
     {
-      auto const input = {U"AA-AA"s,
-                          U"33-33"s,
-                          U"AA+"s,
-                          U"KQ-AK"s,
-                          U"KTs-AKs"s,
-                          U"J8o-A8o"s,
-                          U"KTs-KQo"s,
-                          U"KK-JTo"s};
+      auto const input = {"AA-AA"s,
+                          "33-33"s,
+                          "AA+"s,
+                          "KQ-AK"s,
+                          "KTs-AKs"s,
+                          "J8o-A8o"s,
+                          "KTs-KQo"s,
+                          "KK-JTo"s};
       for (auto const& elem : input)
       {
         parser::ast::hand_range hand_range;
         auto ctx = init_context(elem, parser::hand_range());
         auto const r = x3::phrase_parse(
-            elem.begin(), elem.end(), ctx, x3::unicode::space, hand_range);
+            elem.begin(), elem.end(), ctx, x3::space, hand_range);
         CHECK_FALSE(r);
       }
     }

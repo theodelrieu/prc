@@ -26,24 +26,61 @@ std::ostream& operator<<(std::ostream& os, suitedness s)
 
 namespace parser
 {
-BOOST_SPIRIT_INSTANTIATE(card_type,
-                         std::u32string::const_iterator,
-                         context_type<std::u32string::const_iterator>);
-BOOST_SPIRIT_INSTANTIATE(combo_type,
-                         std::u32string::const_iterator,
-                         context_type<std::u32string::const_iterator>);
-BOOST_SPIRIT_INSTANTIATE(unpaired_hand_type,
-                         std::u32string::const_iterator,
-                         context_type<std::u32string::const_iterator>);
-BOOST_SPIRIT_INSTANTIATE(hand_type,
-                         std::u32string::const_iterator,
-                         context_type<std::u32string::const_iterator>);
-BOOST_SPIRIT_INSTANTIATE(hand_range_type,
-                         std::u32string::const_iterator,
-                         context_type<std::u32string::const_iterator>);
-BOOST_SPIRIT_INSTANTIATE(range_elem_type,
-                         std::u32string::const_iterator,
-                         context_type<std::u32string::const_iterator>);
+BOOST_SPIRIT_INSTANTIATE(
+    card_type,
+    std::u32string::const_iterator,
+    context_type<std::u32string::const_iterator BOOST_PP_COMMA()
+                     x3::unicode::space_type>);
+BOOST_SPIRIT_INSTANTIATE(
+    combo_type,
+    std::u32string::const_iterator,
+    context_type<std::u32string::const_iterator BOOST_PP_COMMA()
+                     x3::unicode::space_type>);
+BOOST_SPIRIT_INSTANTIATE(
+    unpaired_hand_type,
+    std::u32string::const_iterator,
+    context_type<std::u32string::const_iterator BOOST_PP_COMMA()
+                     x3::unicode::space_type>);
+BOOST_SPIRIT_INSTANTIATE(
+    hand_type,
+    std::u32string::const_iterator,
+    context_type<std::u32string::const_iterator BOOST_PP_COMMA()
+                     x3::unicode::space_type>);
+BOOST_SPIRIT_INSTANTIATE(
+    hand_range_type,
+    std::u32string::const_iterator,
+    context_type<std::u32string::const_iterator BOOST_PP_COMMA()
+                     x3::unicode::space_type>);
+BOOST_SPIRIT_INSTANTIATE(
+    range_elem_type,
+    std::u32string::const_iterator,
+    context_type<std::u32string::const_iterator BOOST_PP_COMMA()
+                     x3::unicode::space_type>);
+
+BOOST_SPIRIT_INSTANTIATE(
+    card_type,
+    std::string::const_iterator,
+    context_type<std::string::const_iterator BOOST_PP_COMMA() x3::space_type>);
+BOOST_SPIRIT_INSTANTIATE(
+    combo_type,
+    std::string::const_iterator,
+    context_type<std::string::const_iterator BOOST_PP_COMMA() x3::space_type>);
+BOOST_SPIRIT_INSTANTIATE(
+    unpaired_hand_type,
+    std::string::const_iterator,
+    context_type<std::string::const_iterator BOOST_PP_COMMA() x3::space_type>);
+BOOST_SPIRIT_INSTANTIATE(
+    hand_type,
+    std::string::const_iterator,
+    context_type<std::string::const_iterator BOOST_PP_COMMA() x3::space_type>);
+BOOST_SPIRIT_INSTANTIATE(
+    hand_range_type,
+    std::string::const_iterator,
+    context_type<std::string::const_iterator BOOST_PP_COMMA() x3::space_type>);
+BOOST_SPIRIT_INSTANTIATE(
+    range_elem_type,
+    std::string::const_iterator,
+    context_type<std::string::const_iterator BOOST_PP_COMMA() x3::space_type>);
 
 card_type card()
 {

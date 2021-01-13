@@ -8,7 +8,6 @@ handle 0depth folder equilab
 gtoplus - 
 
 figure out hand order
-parser requires adding std::string context to prc::parser (since input is pure binary with some UTF16/UTF8)
 
 app:
 
