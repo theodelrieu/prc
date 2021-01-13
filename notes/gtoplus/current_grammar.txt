@@ -4,7 +4,7 @@ Grammar
 Non-terminals
 -------------
 
-whole_file: separator + top_level_name + meta_info +
+whole_file: separator + top_level_name + category_info +
             (category | range | grouped_range)* + EOF
 
 range: separator + range_name + range_info + range_content +
@@ -32,7 +32,6 @@ utf16_string: bytes(0x65, 0x00, 0x00, 0x00, 0xff, 0xfe) + nb_bytes_to_encode_siz
 Terminals
 ---------
 
-meta_info: (4 * byte(0x00)) + byte(0x01) + (8 * byte(0x00)) + byte(0x01) + (byte(0x00) * 3)
 separator: 0x39 0x30 0x00 0x00
 
 category_nb_ranges: uint(1 * byte)

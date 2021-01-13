@@ -5,6 +5,7 @@ add_executable(test_prc
   test_equilab.cpp
   test_parser.cpp
   test_prc.cpp
+  test_gtoplus.cpp
   main.cpp
 )
 

@@ -6,6 +6,7 @@ add_library(libprc
   src/pio/parse.cpp
   src/pio/api_def.cpp
   src/equilab/api_def.cpp
+  src/gtoplus/api_def.cpp
   src/combo.cpp
   src/unpaired_hand.cpp
   src/paired_hand.cpp
