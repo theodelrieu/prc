@@ -83,6 +83,14 @@ void recurse_fill_ranges(folder& root,
   }
 }
 
+int recurse_count_subranges(range const& r)
+{
+  auto count = 1;
+  for (auto const& sub : r.subranges())
+    count += recurse_count_subranges(sub);
+  return count;
+}
+
 std::vector<std::pair<std::string, std::string>> parse_range_name(
     std::string const& input)
 {
@@ -345,6 +353,14 @@ range_action move_subrange_at_end(std::string const& range_name)
     });
     if (it != end)
       std::rotate(it, it + 1, end);
+  };
+}
+
+range_action count_max_ranges()
+{
+  return [](range& r, fs::path const& abs_parent_path) {
+    std::cout << recurse_count_subranges(r) << " groups in "
+              << abs_parent_path / r.name() << std::endl;
   };
 }
 }

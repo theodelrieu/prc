@@ -52,7 +52,7 @@ void print_subranges(std::ostream& os,
        << std::string(depth, '\t') << "Subrange: " << sub.name() << ' '
        << std::hex << sub.rgb() << std::dec << ' ';
     for (auto const& elem : sub.elems())
-      os << elem;
+      os << elem << ' ';
     print_subranges(os, sub.subranges(), depth + 1);
   }
 }
@@ -126,7 +126,7 @@ std::ostream& operator<<(std::ostream& os, folder const& f)
     {
       os << p->name() << ' ' << p->rgb() << ' ';
       for (auto const& elem : p->elems())
-        os << elem;
+        os << elem << ' ';
       print_subranges(os, p->subranges(), 0);
     }
     else

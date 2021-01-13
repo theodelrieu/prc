@@ -116,8 +116,8 @@ template <typename Iterator>
 Iterator order_equilab_groups(Iterator begin, Iterator end)
 {
   std::sort(begin, end, [](auto& lhs, auto& rhs) {
-    if (lhs.info.value().nesting_index < rhs.info.value().nesting_index)
-      return true;
+    if (lhs.info.value().nesting_index != rhs.info.value().nesting_index)
+      return lhs.info.value().nesting_index < rhs.info.value().nesting_index;
     return lhs.info.value().index < rhs.info.value().index;
   });
   std::stable_sort(begin, end, [](auto& lhs, auto& rhs) {

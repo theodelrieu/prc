@@ -8,6 +8,7 @@
 #include <prc/equilab/serialize.hpp>
 #include <prc/folder.hpp>
 #include <prc/pio/parse.hpp>
+#include <prc/pio/serialize.hpp>
 
 #include <boost/locale.hpp>
 #include <boost/spirit/home/x3.hpp>
@@ -150,6 +151,39 @@ void serialize_to_equilab(folder const& root, fs::path const& dst)
   std::cout << "Wrote " << dst << std::endl;
 }
 
+void serialize_to_pio_impl(folder const& current_folder,
+                           fs::path const& current_abs_path)
+{
+  for (auto& e : current_folder.entries())
+  {
+    if (auto r = boost::variant2::get_if<range>(&e))
+    {
+      auto const filename = current_abs_path / (r->name() + ".txt"s);
+      std::ofstream ofs{filename.string(), std::ios::trunc};
+      auto const content = pio::serialize(*r);
+      ofs.write(content.data(), content.size());
+      std::cout << "Wrote " << filename << std::endl;
+    }
+    else
+    {
+      auto const& subfolder = boost::variant2::get<folder>(e);
+      auto const subfolder_abs_path = current_abs_path / subfolder.name();
+      fs::create_directories(subfolder_abs_path);
+      std::cout << "Created " << subfolder_abs_path << std::endl;
+      serialize_to_pio_impl(subfolder, subfolder_abs_path);
+    }
+  }
+}
+
+void serialize_to_pio(folder const& root, fs::path const& dst)
+{
+  auto const tmp_path = fs::temp_directory_path() / "pio";
+  fs::create_directories(tmp_path);
+  serialize_to_pio_impl(root, tmp_path);
+  fs::rename(tmp_path, dst);
+  std::cout << "Renamed " << tmp_path << " to " << dst << std::endl;
+}
+
 folder load_pio_folder(fs::path const& src)
 {
   std::vector<fs::path> paths;
@@ -205,15 +239,16 @@ void apply_pio_actions(folder& root)
                    actions::replace_in_name("POT", ""),
                    actions::change_color("Fold", 0xff6da2c0),
                    actions::move_subrange_at_end("Fold")});
-  // apply_to_folders(root, actions::fix_parent_ranges());
-  apply_to_folders(root, actions::nest_parent_ranges());
+  apply_to_folders(root, actions::fix_parent_ranges());
   apply_to_ranges(
       root, false, {actions::set_unassigned_to_subrange("Fold", 0xff6da2c0)});
 }
 
 void apply_equilab_actions(folder& root)
 {
-  apply_to_folders(root, actions::nest_parent_ranges());
+  // std::cout << root << std::endl;
+  // apply_to_folders(root, actions::nest_parent_ranges());
+  // std::cout << "after nesting: " << root << std::endl;
 }
 }
 
@@ -266,6 +301,10 @@ int main(int argc, char const* argv[])
 
   if (dst_format == "equilab")
   {
-    serialize_to_equilab(root, fs::absolute(fs::path{dst}));
+    // serialize_to_equilab(root, fs::absolute(fs::path{dst}));
+  }
+  else if (dst_format == "pio")
+  {
+    serialize_to_pio(root, fs::absolute(fs::path{dst}));
   }
 }

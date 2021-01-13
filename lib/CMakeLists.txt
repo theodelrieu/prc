@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.3)
 
 add_library(libprc
-  # src/equilab/parse.cpp
   src/equilab/serialize.cpp
+  src/pio/serialize.cpp
   src/pio/parse.cpp
   src/pio/api_def.cpp
   src/equilab/api_def.cpp
