@@ -11,6 +11,7 @@ extern std::string testDataPath;
 
 namespace fs = std::filesystem;
 namespace x3 = boost::spirit::x3;
+using namespace prc::parser::ast::literals;
 using namespace prc;
 
 namespace
@@ -41,15 +42,47 @@ TEST_CASE("gtoplus format tests", "[gtoplus]")
   {
     auto const content =
         read_all(fs::path{testDataPath} / "gtoplus" / "empty.txt");
-    auto ctx = init_context(content, gtoplus::parser::info());
+    auto ctx = init_context(content, gtoplus::parser::file());
+    auto begin = content.begin();
+    auto const end = content.end();
 
-    gtoplus::parser::ast::info info;
-    auto const r =
-        x3::phrase_parse(content.begin(), content.end(), ctx, x3::space, info);
+    std::vector<gtoplus::parser::ast::entry> entries;
+    auto const r = x3::phrase_parse(begin, end, ctx, x3::space, entries);
     REQUIRE(r);
+    REQUIRE(begin == end);
 
-    CHECK(info.name == "default_name");
-    CHECK(info.type == gtoplus::parser::ast::entry_type::category);
-    CHECK(info.nb_subentries == 0);
+    REQUIRE(entries.size() == 1);
+    auto& entry = entries.front();
+    REQUIRE(entry.which() == 0);
+    auto& category = boost::get<gtoplus::parser::ast::category>(entry);
+
+    CHECK(category.info.name == "default_name");
+    CHECK(category.info.type == gtoplus::parser::ast::entry_type::category);
+    CHECK(category.info.nb_subentries == 0);
+  }
+
+  SECTION("Aces")
+  {
+    auto const content =
+        read_all(fs::path{testDataPath} / "gtoplus" / "aces.txt");
+    auto ctx = init_context(content, gtoplus::parser::file());
+    auto begin = content.begin();
+    auto const end = content.end();
+
+    std::vector<gtoplus::parser::ast::entry> entries;
+    auto const r = x3::phrase_parse(begin, end, ctx, x3::space, entries);
+    REQUIRE(r);
+    REQUIRE(begin == end);
+
+    REQUIRE(entries.size() == 2);
+    auto& category =
+        boost::get<gtoplus::parser::ast::category>(entries.front());
+    auto& range = boost::get<gtoplus::parser::ast::range>(entries.back());
+
+    CHECK(range.info.name == "Aces");
+    CHECK(range.info.type == gtoplus::parser::ast::entry_type::range);
+    CHECK(range.info.nb_subentries == 0);
+    REQUIRE(range.elems.size() == 1);
+    CHECK(range.elems.front() == "AA"_ast_re);
   }
 }

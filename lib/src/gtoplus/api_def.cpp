@@ -5,13 +5,13 @@
 
 namespace prc::gtoplus::parser
 {
-BOOST_SPIRIT_INSTANTIATE(info_type,
+BOOST_SPIRIT_INSTANTIATE(file_type,
                          std::string::const_iterator,
                          context_type<std::string::const_iterator>);
 
-info_type info()
+file_type file()
 {
-  return _info;
+  return _file_type;
 }
 
 namespace ast
@@ -22,12 +22,16 @@ std::ostream& operator<<(std::ostream& os, entry_type e)
   {
   case entry_type::category:
     os << "category";
+    break;
   case entry_type::range:
     os << "range";
+    break;
   case entry_type::group:
     os << "group";
+    break;
   case entry_type::grouped_range:
     os << "grouped_range";
+    break;
   }
   return os;
 }

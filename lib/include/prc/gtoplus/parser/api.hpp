@@ -7,9 +7,9 @@
 
 namespace prc::gtoplus::parser
 {
-using info_type = x3::rule<struct info_class, ast::info>;
+using file_type = x3::rule<struct file_class, std::vector<ast::entry>>;
 
-BOOST_SPIRIT_DECLARE(info_type);
+BOOST_SPIRIT_DECLARE(file_type);
 
-info_type info();
+file_type file();
 }
