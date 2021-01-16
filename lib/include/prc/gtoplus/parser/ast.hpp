@@ -31,10 +31,16 @@ struct category
   ast::info info;
 };
 
+struct weighted_elems
+{
+  double weight;
+  std::vector<prc::parser::ast::range_elem> elems;
+};
+
 struct range
 {
   ast::info info;
-  std::vector<prc::parser::ast::range_elem> elems;
+  std::vector<ast::weighted_elems> weighted_elems;
 };
 
 using entry = boost::variant<category, range>;

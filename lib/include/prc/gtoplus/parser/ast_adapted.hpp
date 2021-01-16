@@ -9,4 +9,9 @@ BOOST_FUSION_ADAPT_STRUCT(prc::gtoplus::parser::ast::info,
                           type,
                           nb_subentries);
 BOOST_FUSION_ADAPT_STRUCT(prc::gtoplus::parser::ast::category, info);
-BOOST_FUSION_ADAPT_STRUCT(prc::gtoplus::parser::ast::range, info, elems);
+BOOST_FUSION_ADAPT_STRUCT(prc::gtoplus::parser::ast::weighted_elems,
+                          weight,
+                          elems);
+BOOST_FUSION_ADAPT_STRUCT(prc::gtoplus::parser::ast::range,
+                          info,
+                          weighted_elems);

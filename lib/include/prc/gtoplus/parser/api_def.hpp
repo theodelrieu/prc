@@ -3,6 +3,7 @@
 #define BOOST_SPIRIT_X3_DEBUG
 #include <boost/fusion/adapted/std_pair.hpp>
 #include <boost/fusion/include/pair.hpp>
+#include <boost/fusion/tuple/tuple_tie.hpp>
 #include <boost/locale.hpp>
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/binary.hpp>
@@ -172,6 +173,31 @@ struct category_parser : x3::parser<category_parser>
 
 inline constexpr category_parser _category;
 
+auto const default_weight_cb = [](auto& ctx) {
+  _val(ctx).weight = 100.0;
+  _val(ctx).elems = std::move(_attr(ctx));
+};
+
+auto const check_weights_cb = [](auto& ctx) {
+  double w1, w2;
+  std::vector<prc::parser::ast::range_elem> elems;
+  boost::fusion::tie(w1, elems, w2) = _attr(ctx);
+  if (w1 != w2)
+    _pass(ctx) = false;
+  else
+  {
+    _val(ctx).elems = std::move(elems);
+    _val(ctx).weight = w1;
+  }
+};
+
+auto const _weighted_elems = prc::parser::as<ast::weighted_elems>[(
+    x3::lit('[') > x3::double_ > ']' > (prc::parser::range_elem() % ',') >
+    "[/" > x3::double_ > ']')[check_weights_cb]];
+
+auto const _no_weight_elems = prc::parser::as<ast::weighted_elems>[(
+    prc::parser::range_elem() % ',')[default_weight_cb]];
+
 struct range_parser : x3::parser<range_parser>
 {
   using attribute_type = ast::range;
@@ -194,16 +220,15 @@ struct range_parser : x3::parser<range_parser>
     std::string range_content;
     if (!x3::parse(it, last, utf16_to_utf8_string, range_content))
       return false;
-    // TODO handle weights
     // this horror seems needed, haven't found a better way of reusing the
     // context
-    std::vector<prc::parser::ast::range_elem> elems;
+    std::vector<ast::weighted_elems> elems;
     if (!x3::phrase_parse(
             range_content.cbegin(),
             range_content.cend(),
-            x3::with<x3::error_handler_tag>(context.get(
-                boost::mpl::identity<
-                    x3::error_handler_tag>{}))[prc::parser::range_elem() % ','],
+            x3::with<x3::error_handler_tag>(
+                context.get(boost::mpl::identity<x3::error_handler_tag>{}))[*(
+                _weighted_elems | _no_weight_elems)],
             x3::space,
             elems))
     {

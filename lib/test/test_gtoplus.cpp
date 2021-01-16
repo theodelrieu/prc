@@ -82,7 +82,33 @@ TEST_CASE("gtoplus format tests", "[gtoplus]")
     CHECK(range.info.name == "Aces");
     CHECK(range.info.type == gtoplus::parser::ast::entry_type::range);
     CHECK(range.info.nb_subentries == 0);
-    REQUIRE(range.elems.size() == 1);
-    CHECK(range.elems.front() == "AA"_ast_re);
+    REQUIRE(range.weighted_elems.size() == 1);
+    CHECK(range.weighted_elems.front().elems == std::vector{"AA"_ast_re});
+    CHECK(range.weighted_elems.front().weight == 100.0);
   }
+
+  // SECTION("Weights")
+  // {
+  //   auto const content =
+  //       read_all(fs::path{testDataPath} / "gtoplus" / "weights.txt");
+  //   auto ctx = init_context(content, gtoplus::parser::file());
+  //   auto begin = content.begin();
+  //   auto const end = content.end();
+  //
+  //   std::vector<gtoplus::parser::ast::entry> entries;
+  //   auto const r = x3::phrase_parse(begin, end, ctx, x3::space, entries);
+  //   REQUIRE(r);
+  //   REQUIRE(begin == end);
+  //
+  //   REQUIRE(entries.size() == 2);
+  //   auto& category =
+  //       boost::get<gtoplus::parser::ast::category>(entries.front());
+  //   auto& range = boost::get<gtoplus::parser::ast::range>(entries.back());
+  //
+  //   CHECK(range.info.name == "weights");
+  //   CHECK(range.info.type == gtoplus::parser::ast::entry_type::range);
+  //   CHECK(range.info.nb_subentries == 0);
+  //   REQUIRE(range.elems.size() == 1);
+  //   CHECK(range.elems.front() == "AA"_ast_re);
+  // }
 }

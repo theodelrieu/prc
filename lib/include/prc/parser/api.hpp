@@ -6,10 +6,10 @@
 #include <boost/spirit/home/support/char_encoding/unicode.hpp>
 #include <boost/spirit/home/x3.hpp>
 
-namespace prc
+namespace prc::parser
 {
-namespace parser
-{
+namespace x3 = boost::spirit::x3;
+
 struct card_class;
 struct combo_class;
 struct unpaired_hand_class;
@@ -31,13 +31,6 @@ using rank_type =
 using pair_type =
     x3::symbols_parser<boost::spirit::char_encoding::unicode, ast::paired_hand>;
 
-BOOST_SPIRIT_DECLARE(card_type,
-                     combo_type,
-                     unpaired_hand_type,
-                     hand_type,
-                     hand_range_type,
-                     range_elem_type);
-
 card_type card();
 combo_type combo();
 unpaired_hand_type unpaired_hand();
@@ -49,4 +42,5 @@ suit_type const& suit();
 rank_type const& rank();
 pair_type const& paired_hand();
 }
-}
+
+#include <prc/parser/api_def.hpp>

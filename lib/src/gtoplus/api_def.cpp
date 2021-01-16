@@ -1,5 +1,6 @@
 #include <prc/gtoplus/parser/api_def.hpp>
 #include <prc/gtoplus/parser/config.hpp>
+#include <prc/parser/api.hpp>
 
 #include <ostream>
 
