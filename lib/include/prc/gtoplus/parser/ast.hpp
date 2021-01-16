@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 
-#include <boost/fusion/include/io.hpp>
 #include <boost/variant2/variant.hpp>
 
 #include <prc/parser/ast.hpp>
@@ -16,13 +15,13 @@ enum class entry_type
   category,
   range,
   group,
-  grouped_range
 };
 
 struct info
 {
   std::string name;
   entry_type type;
+  int group_index;
   int nb_subentries;
 };
 
@@ -37,10 +36,24 @@ struct weighted_elems
   std::vector<prc::parser::ast::range_elem> elems;
 };
 
+struct group_ratio
+{
+  int index;
+  double ratio;
+};
+
+struct hand_info
+{
+  prc::parser::ast::hand hand;
+  std::vector<group_ratio> group_ratios;
+};
+
 struct range
 {
   ast::info info;
+  std::vector<ast::info> groups;
   std::vector<ast::weighted_elems> weighted_elems;
+  std::vector<ast::hand_info> hand_info;
 };
 
 using entry = boost::variant<category, range>;

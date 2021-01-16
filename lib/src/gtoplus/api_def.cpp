@@ -30,9 +30,6 @@ std::ostream& operator<<(std::ostream& os, entry_type e)
   case entry_type::group:
     os << "group";
     break;
-  case entry_type::grouped_range:
-    os << "grouped_range";
-    break;
   }
   return os;
 }
