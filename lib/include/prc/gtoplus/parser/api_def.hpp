@@ -1,6 +1,6 @@
 #pragma once
 
-#define BOOST_SPIRIT_X3_DEBUG
+// #define BOOST_SPIRIT_X3_DEBUG
 #include <boost/fusion/adapted/std_pair.hpp>
 #include <boost/fusion/include/pair.hpp>
 #include <boost/fusion/tuple/tuple_tie.hpp>

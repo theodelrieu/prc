@@ -7,6 +7,7 @@
 #include <prc/equilab/parser/api.hpp>
 #include <prc/equilab/serialize.hpp>
 #include <prc/folder.hpp>
+#include <prc/gtoplus/serialize.hpp>
 #include <prc/pio/parse.hpp>
 #include <prc/pio/serialize.hpp>
 
@@ -151,6 +152,20 @@ void serialize_to_equilab(folder const& root, fs::path const& dst)
   std::cout << "Wrote " << dst << std::endl;
 }
 
+void serialize_to_gtoplus(folder const& root, fs::path const& dst)
+{
+  fs::create_directories(dst);
+  auto const [newdefs, settings] = gtoplus::serialize(root);
+  std::ofstream newdefs_stream{(dst / "newdefs3.txt").string(),
+                               std::ios::binary | std::ios::trunc};
+  newdefs_stream.write(newdefs.data(), newdefs.size());
+  std::cout << "Wrote " << dst / "newdefs3.txt" << std::endl;
+  std::ofstream settings_stream((dst / "settings.txt").string(),
+                                std::ios::trunc);
+  settings_stream.write(settings.data(), settings.size());
+  std::cout << "Wrote " << dst / "settings.txt" << std::endl;
+}
+
 void serialize_to_pio_impl(folder const& current_folder,
                            fs::path const& current_abs_path)
 {
@@ -239,6 +254,7 @@ void apply_pio_actions(folder& root)
                    actions::replace_in_name("POT", ""),
                    actions::change_color("Fold", 0xff6da2c0),
                    actions::move_subrange_at_end("Fold")});
+  apply_to_folders(root, actions::remove_empty_ranges());
   apply_to_folders(root, actions::fix_parent_ranges());
   apply_to_ranges(
       root, false, {actions::set_unassigned_to_subrange("Fold", 0xff6da2c0)});
@@ -246,9 +262,8 @@ void apply_pio_actions(folder& root)
 
 void apply_equilab_actions(folder& root)
 {
-  // std::cout << root << std::endl;
+  apply_to_folders(root, actions::remove_empty_ranges());
   // apply_to_folders(root, actions::nest_parent_ranges());
-  // std::cout << "after nesting: " << root << std::endl;
 }
 }
 
@@ -301,10 +316,14 @@ int main(int argc, char const* argv[])
 
   if (dst_format == "equilab")
   {
-    // serialize_to_equilab(root, fs::absolute(fs::path{dst}));
+    serialize_to_equilab(root, fs::absolute(fs::path{dst}));
   }
   else if (dst_format == "pio")
   {
     serialize_to_pio(root, fs::absolute(fs::path{dst}));
+  }
+  else if (dst_format == "gtoplus")
+  {
+    serialize_to_gtoplus(root, fs::absolute(fs::path{dst}));
   }
 }

@@ -91,7 +91,7 @@ public:
   std::string operator()(prc::range::weighted_elems const& we) const
   {
     std::stringstream wss;
-    wss << std::fixed << std::setprecision(3) << we.weight;
+    wss << std::fixed << std::setprecision(6) << we.weight;
     auto const weight_str = wss.str();
     if (we.elems == any_two())
       return weight_str + ":random";

@@ -237,6 +237,50 @@ std::vector<parent_child_range> find_parent_ranges(
 
 inline namespace folder_actions
 {
+namespace
+{
+auto const has_only_fold = [](auto& r) {
+  return r.subranges().size() == 1 && r.subranges().front().name() == "Fold";
+};
+
+auto const has_no_subranges = [](auto& r) { return r.subranges().empty(); };
+
+auto const has_too_many_players = [](auto& r) {
+  auto const parts = parse_range_name(r.name());
+  if (parts.size() < 3)
+    return false;
+  // only keep squeeze spots when 3 players
+  std::vector<std::string> positions;
+  std::vector<std::string> actions;
+  auto const& current_pos = parts.back().first;
+
+  for (auto const& [pos, action] : parts)
+  {
+    positions.push_back(pos);
+    actions.push_back(action);
+  }
+  {
+    auto sorted_pos = positions;
+    std::sort(sorted_pos.begin(), sorted_pos.end());
+    sorted_pos.erase(std::unique(sorted_pos.begin(), sorted_pos.end()),
+                     sorted_pos.end());
+    if (sorted_pos.size() > 3)
+      return true;
+  }
+  if (positions[0] != current_pos && positions[1] != current_pos)
+  {
+    // keep squeeze spots and SRP with multiple calls
+    if (!std::all_of(actions.begin() + 1, actions.end() - 1, [](auto& a) {
+          return a == "Call";
+        }))
+    {
+      return true;
+    }
+  }
+  return false;
+};
+}
+
 folder_action remove_empty_ranges()
 {
   return [](folder& f, fs::path const& current_path) {
@@ -247,7 +291,8 @@ folder_action remove_empty_ranges()
                        [&](auto& e) {
                          if (auto p = boost::variant2::get_if<range>(&e))
                          {
-                           auto b = p->subranges().empty();
+                           auto b = has_only_fold(*p) || has_no_subranges(*p) ||
+                                    has_too_many_players(*p);
                            if (b)
                            {
                              std::cout << "Removing "
