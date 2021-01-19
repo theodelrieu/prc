@@ -277,6 +277,15 @@ auto const has_too_many_players = [](auto& r) {
       return true;
     }
   }
+  // don't keep when we open + raise + other raise
+  if (positions[0] == current_pos)
+  {
+    if (positions[2] != current_pos)
+    {
+      if (actions[1] != "Call" && actions[2] != "Call")
+        return true;
+    }
+  }
   return false;
 };
 }
@@ -337,12 +346,27 @@ folder_action nest_parent_ranges()
     return true;
   };
 }
+
+folder_action replace_in_folder_name(std::string const& old_str,
+                                     std::string const& new_str)
+{
+  return [old_str, new_str](folder& f, fs::path const& abs_parent_path) {
+    if (boost::algorithm::contains(f.name(), old_str))
+    {
+      std::cout << abs_parent_path << ": rename to ";
+      f.set_name(
+          boost::algorithm::replace_all_copy(f.name(), old_str, new_str));
+      std::cout << f.name() << std::endl;
+    }
+    return true;
+  };
+}
 }
 
 inline namespace range_actions
 {
-range_action replace_in_name(std::string const& old_str,
-                             std::string const& new_str)
+range_action replace_in_range_name(std::string const& old_str,
+                                   std::string const& new_str)
 {
   return [old_str, new_str](range& r, fs::path const& abs_parent_path) {
     if (boost::algorithm::contains(r.name(), old_str))
@@ -359,6 +383,19 @@ range_action change_color(std::string const& range_name, int rgb)
 {
   return [range_name, rgb](range& r, fs::path const& abs_parent_path) {
     if (r.name() == range_name && r.rgb() != rgb)
+    {
+      std::cout << abs_parent_path / r.name() << ": changing color from "
+                << std::hex << r.rgb() << " to " << rgb << std::dec
+                << std::endl;
+      r.set_rgb(rgb);
+    }
+  };
+}
+
+range_action change_color_ends_with(std::string const& str, int rgb)
+{
+  return [str, rgb](range& r, fs::path const& abs_parent_path) {
+    if (boost::algorithm::ends_with(r.name(), str) && r.rgb() != rgb)
     {
       std::cout << abs_parent_path / r.name() << ": changing color from "
                 << std::hex << r.rgb() << " to " << rgb << std::dec

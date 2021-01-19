@@ -246,14 +246,21 @@ folder load_equilab_file(fs::path const& src_file)
 
 void apply_pio_actions(folder& root)
 {
-  apply_to_folders(root, actions::remove_empty_ranges());
   apply_to_ranges(root,
                   true,
-                  {actions::replace_in_name("FOLD", "Fold"),
-                   actions::replace_in_name("__", "%_"),
-                   actions::replace_in_name("POT", ""),
+                  {actions::replace_in_range_name("FOLD", "Fold"),
+                   actions::replace_in_range_name("__", "%_"),
+                   actions::replace_in_range_name("_POT", "%"),
+                   actions::replace_in_range_name("UTG+4", "HJ"),
+                   actions::replace_in_range_name("UTG+3", "LJ"),
                    actions::change_color("Fold", 0xff6da2c0),
+                   actions::change_color("AllIn", 0xff8b0000),
+                   actions::change_color_ends_with("bb", 0xffe9967a),
+                   actions::change_color_ends_with("%", 0xffe9967a),
+                   actions::change_color("HalfPot", 0xffe9967a),
                    actions::move_subrange_at_end("Fold")});
+  apply_to_folders(root, actions::replace_in_folder_name("UTG+4", "HJ"));
+  apply_to_folders(root, actions::replace_in_folder_name("UTG+3", "LJ"));
   apply_to_folders(root, actions::remove_empty_ranges());
   apply_to_folders(root, actions::fix_parent_ranges());
   apply_to_ranges(
@@ -262,8 +269,17 @@ void apply_pio_actions(folder& root)
 
 void apply_equilab_actions(folder& root)
 {
-  apply_to_folders(root, actions::remove_empty_ranges());
-  // apply_to_folders(root, actions::nest_parent_ranges());
+  // apply_to_ranges(root,
+  //                 true,
+  //                 {actions::replace_in_range_name("Raise1", "Raise"),
+  //                  actions::replace_in_range_name("UTG+4", "HJ"),
+  //                  actions::replace_in_range_name("UTG+3", "LJ"),
+  //                  actions::change_color_ends_with("bb", 0xffe9967a),
+  //                  actions::change_color_ends_with("%", 0xffe9967a),
+  //                  actions::change_color("66%", 0xffe9967a),
+  //                  actions::change_color("180%", 0xffe9967a)});
+  // apply_to_folders(root, actions::replace_in_folder_name("UTG+4", "HJ"));
+  // apply_to_folders(root, actions::replace_in_folder_name("UTG+3", "LJ"));
 }
 }
 

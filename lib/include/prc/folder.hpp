@@ -24,6 +24,7 @@ public:
   void add_entry(folder const&);
   void add_entry(range const&);
   void remove_entry(std::string const& name);
+  void set_name(std::string);
 
   std::string const& name() const;
   std::vector<entry> const& entries() const;

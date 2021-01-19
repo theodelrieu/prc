@@ -91,6 +91,11 @@ void folder::remove_entry(std::string const& name)
                  _entries.end());
 }
 
+void folder::set_name(std::string n)
+{
+  _name = std::move(n);
+}
+
 std::string const& folder::name() const
 {
   return _name;

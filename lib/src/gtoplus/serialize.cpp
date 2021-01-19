@@ -314,7 +314,7 @@ std::string to_group_info(std::vector<prc::range> const& subranges,
     if (group_it == group_names_rgbs.end())
       group_names_rgbs.push_back({sub.name(), sub.rgb()});
     ret += to_little_dword(0x00003039) + to_utf16_string(sub.name()) +
-           to_little_dword(0) + '\x1' + to_little_dword(2) +
+           to_little_dword(0) + '\x01' + to_little_dword(2) +
            to_little_dword(idx) + to_little_dword(0);
   }
   return ret;
@@ -427,11 +427,6 @@ serialized_content serialize(prc::folder const& f)
   std::vector<group_name_rgb> group_names_rgbs;
   ret.newdefs3 = serialize_impl(f, group_names_rgbs);
   ret.settings = serialize_settings(group_names_rgbs);
-  for (auto const& elem : group_names_rgbs)
-  {
-    std::cout << elem.name << ' ' << std::hex << elem.rgb << std::dec
-              << std::endl;
-  }
   return ret;
 }
 }

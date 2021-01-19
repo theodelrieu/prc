@@ -28,7 +28,7 @@ std::vector<range::weighted_elems> weights_to_weighted_elems(
     // do not include folded combos ever
     // it can be reconstituted by expanding combos of all subranges, then
     // set_difference between that and the parent combos
-    if (weights[i] > 0.0)
+    if (weights[i] > std::numeric_limits<double>::epsilon())
       m[weights[i] * 100.0].push_back(any_two[i]);
   }
 
@@ -73,7 +73,7 @@ weight_by_combo_t weight_by_combos(
     {
       auto& w = ret[combo];
       w += weight;
-      if (w > 100.0)
+      if (w + std::numeric_limits<double>::epsilon() >= 100.0)
         w = 100.0;
     }
   }
@@ -88,7 +88,7 @@ std::vector<range::weighted_elems> unassigned_combos_to_weighted_elems(
 
   for (auto const& [combo, weight] : combos)
   {
-    if (weight > 0.0)
+    if (weight > std::numeric_limits<double>::epsilon())
       m[weight].push_back(combo);
   }
   for (auto const& [weight, combos] : m)
@@ -102,6 +102,8 @@ std::vector<range::weighted_elems> equilab_weighted_hands_to_weighted_elems(
   std::vector<range::weighted_elems> ret;
   for (auto const& [weight, hands] : weighted_hands)
   {
+    if (weight <= std::numeric_limits<double>::epsilon())
+      continue;
     range::weighted_elems e{weight, {}};
     std::transform(
         hands.begin(), hands.end(), std::back_inserter(e.elems), [](auto& e) {
@@ -299,7 +301,7 @@ std::vector<range::weighted_elems> unassigned_elems(range const& r)
     {
       auto& w = current[combo];
       w -= weight;
-      if (w < 0.0)
+      if (w <= std::numeric_limits<double>::epsilon())
         w = 0;
     }
   }
