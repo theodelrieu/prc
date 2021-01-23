@@ -25,8 +25,6 @@ inline namespace folder_actions
 {
 folder_action fix_parent_ranges();
 folder_action nest_parent_ranges();
-folder_action remove_empty_ranges();
-folder_action replace_in_folder_name(std::string const& old_str,
-                                     std::string const& new_str);
+folder_action remove_useless_ranges();
 }
 }

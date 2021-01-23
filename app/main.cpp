@@ -194,6 +194,7 @@ void serialize_to_pio(folder const& root, fs::path const& dst)
 {
   auto const tmp_path = fs::temp_directory_path() / "pio";
   fs::create_directories(tmp_path);
+  fs::create_directories(dst);
   serialize_to_pio_impl(root, tmp_path);
   fs::rename(tmp_path, dst);
   std::cout << "Renamed " << tmp_path << " to " << dst << std::endl;
@@ -251,17 +252,14 @@ void apply_pio_actions(folder& root)
                   {actions::replace_in_range_name("FOLD", "Fold"),
                    actions::replace_in_range_name("__", "%_"),
                    actions::replace_in_range_name("_POT", "%"),
-                   actions::replace_in_range_name("UTG+4", "HJ"),
-                   actions::replace_in_range_name("UTG+3", "LJ"),
+                   actions::replace_in_range_name("Raise1", "Raise"),
+                   actions::replace_in_range_name("HalfPot", "50%"),
                    actions::change_color("Fold", 0xff6da2c0),
                    actions::change_color("AllIn", 0xff8b0000),
                    actions::change_color_ends_with("bb", 0xffe9967a),
                    actions::change_color_ends_with("%", 0xffe9967a),
-                   actions::change_color("HalfPot", 0xffe9967a),
                    actions::move_subrange_at_end("Fold")});
-  apply_to_folders(root, actions::replace_in_folder_name("UTG+4", "HJ"));
-  apply_to_folders(root, actions::replace_in_folder_name("UTG+3", "LJ"));
-  apply_to_folders(root, actions::remove_empty_ranges());
+  apply_to_folders(root, actions::remove_useless_ranges());
   apply_to_folders(root, actions::fix_parent_ranges());
   apply_to_ranges(
       root, false, {actions::set_unassigned_to_subrange("Fold", 0xff6da2c0)});
@@ -305,41 +303,37 @@ int main(int argc, char const* argv[])
     std::cout << cli << std::endl;
     return 0;
   }
+  auto const src_path = fs::absolute(fs::canonical(src));
+  auto const dst_path = fs::absolute(fs::canonical(dst));
   // TODO repl
   folder root;
   if (src_format == "pio")
   {
-    if (!fs::is_directory(src))
+    if (!fs::is_directory(src_path))
     {
       std::cout << "--src must point to a directory when --src-format=pio"
                 << std::endl;
       return -1;
     }
-    root = load_pio_folder(fs::absolute(fs::path{src}));
+    root = load_pio_folder(src_path);
     apply_pio_actions(root);
   }
   else if (src_format == "equilab")
   {
-    if (!fs::is_regular_file(src))
+    if (!fs::is_regular_file(src_path))
     {
       std::cout << "--src must point to a file when --src-format=equilab"
                 << std::endl;
       return -1;
     }
-    root = load_equilab_file(fs::absolute(fs::path{src}));
+    root = load_equilab_file(src_path);
     apply_equilab_actions(root);
   }
 
   if (dst_format == "equilab")
-  {
-    serialize_to_equilab(root, fs::absolute(fs::path{dst}));
-  }
+    serialize_to_equilab(root, dst_path);
   else if (dst_format == "pio")
-  {
-    serialize_to_pio(root, fs::absolute(fs::path{dst}));
-  }
+    serialize_to_pio(root, dst_path);
   else if (dst_format == "gtoplus")
-  {
-    serialize_to_gtoplus(root, fs::absolute(fs::path{dst}));
-  }
+    serialize_to_gtoplus(root, dst_path);
 }

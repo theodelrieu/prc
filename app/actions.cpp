@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
+#include <map>
 #include <vector>
 
 #include <prc/parser/as_type.hpp>
@@ -233,6 +234,25 @@ std::vector<parent_child_range> find_parent_ranges(
   std::reverse(parent_ranges.begin(), parent_ranges.end());
   return parent_ranges;
 }
+
+template <typename T>
+auto get_entry_name(T& entry)
+{
+  return boost::variant2::visit([&](auto& e) { return e.name(); }, entry);
+}
+
+template <typename T>
+void set_entry_name(T& entry, std::string const& new_name)
+{
+  boost::variant2::visit([&](auto& e) { e.set_name(new_name); }, entry);
+}
+
+auto entry_contains(std::string const& str)
+{
+  return [str](auto& e) {
+    return boost::algorithm::contains(get_entry_name(e), str);
+  };
+}
 }
 
 inline namespace folder_actions
@@ -290,7 +310,7 @@ auto const has_too_many_players = [](auto& r) {
 };
 }
 
-folder_action remove_empty_ranges()
+folder_action remove_useless_ranges()
 {
   return [](folder& f, fs::path const& current_path) {
     auto& entries = f.entries();
@@ -319,7 +339,8 @@ folder_action remove_empty_ranges()
 folder_action fix_parent_ranges()
 {
   return [](auto& folder, fs::path const& current_path) {
-    if (!has_vsxbet_folders(folder))
+    // SB is the only position where limp raise happens
+    if (!has_vsxbet_folders(folder) && folder.name() != "SB")
       return true;
     auto const flattened_ranges = flatten_ranges(folder, current_path);
     auto parent_ranges = find_parent_ranges(flattened_ranges);
@@ -343,21 +364,6 @@ folder_action nest_parent_ranges()
     // we can remove now, iterators can be invalidated
     for (auto it = parent_ranges.rbegin(); it != parent_ranges.rend(); ++it)
       it->child_parent_folder->remove_entry(it->child_path.filename().string());
-    return true;
-  };
-}
-
-folder_action replace_in_folder_name(std::string const& old_str,
-                                     std::string const& new_str)
-{
-  return [old_str, new_str](folder& f, fs::path const& abs_parent_path) {
-    if (boost::algorithm::contains(f.name(), old_str))
-    {
-      std::cout << abs_parent_path << ": rename to ";
-      f.set_name(
-          boost::algorithm::replace_all_copy(f.name(), old_str, new_str));
-      std::cout << f.name() << std::endl;
-    }
     return true;
   };
 }
