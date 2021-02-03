@@ -1,8 +1,10 @@
 #pragma once
 
-#include <string>
+#include <filesystem>
+
+#include <prc/folder.hpp>
 
 namespace prc::equilab
 {
-void parse(std::string_view sv);
+prc::folder parse(std::filesystem::path const&);
 }

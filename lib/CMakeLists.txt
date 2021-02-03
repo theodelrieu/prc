@@ -5,6 +5,7 @@ add_library(libprc
   src/pio/serialize.cpp
   src/pio/parse.cpp
   src/pio/api_def.cpp
+  src/equilab/parse.cpp
   src/equilab/api_def.cpp
   src/gtoplus/api_def.cpp
   src/gtoplus/serialize.cpp

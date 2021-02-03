@@ -1,91 +1,36 @@
-#include <boost/fusion/include/adapt_struct.hpp>
+#include <prc/equilab/parse.hpp>
 
-#define BOOST_SPIRIT_X3_DEBUG
-#include <boost/spirit/home/x3.hpp>
+#include <prc/equilab/parser/api.hpp>
 
-#include <iostream>
-#include <string>
+#include <boost/locale.hpp>
 
-// namespace prc::equilab
-// {
-// namespace x3 = boost::spirit::x3;
-// namespace ascii = boost::spirit::x3::ascii;
-//
-// using ascii::char_;
-// using x3::double_;
-// using x3::int_;
-// using x3::lexeme;
-// using x3::lit;
-//
-// namespace ast
-// {
-// struct range
-// {
-//   std::string name;
-//   std::vector<std::string> combos;
-// };
-//
-// }
-//
-// namespace parser
-// {
-// inline char constexpr delim = 0xb0;
-//
-// x3::rule<struct range, ast::range> const range = "range";
-// auto const range_name = lexeme[+(char_ - ' ') >> ' '];
-// auto const combo = lexeme[x3::alnum - ",}"];
-//
-// // clang-format off
-// // TODO bien gerer la grammaire des combos (EN ENTIER)
-// auto const range_def =
-//   '.' > range_name > '{' > +(combo % ',') > '}'
-//   ;
-//
-// // FORMAT =
-// //   "[Userdefined]" + '\n'
-// //   RANGES
-// //
-// // RANGES = (RANGE_NAME + ' ' + '{' + RANGE + '}' + '\n')+
-// // RANGE = ((WEIGHT + ':')? + COMBOS) | ((WEIGHT + ':')? + COMBOS +
-// GROUP_INFO)+
-// //
-// // COMBOS = (COMBO + (',' + COMBO)*) + ':'
-// // GROUP_INFO = DELIM + GROUP_INDEX + DELIM + PARENT_GROUP_INDEX + DELIM +
-// GROUP_RGB + DELIM + (GROUP_NAME)? + DELIM + NESTING_INDEX + DELIM
-// // GROUP_INDEX = integer
-// // GROUP_RGB = (3-digit int)(3-digit int)(3-digit int)
-// // GROUP_NAME = UTF16_CHARS
-// // NESTING_INDEX = integer
-// // WEIGHT = float
-// // RANGE_NAME = '.' + UTF16_CHARS
-// // DELIM = 0xb0
-// // CRLF = \n
-//
-// // clang-format on
-//
-// BOOST_SPIRIT_DEFINE(range);
-// }
-//
-// void parse(std::string_view sv)
-// {
-//   auto begin = sv.begin();
-//   auto end = sv.end();
-//   auto ld = [&](auto& ctx) {
-//     auto s = _attr(ctx);
-//     std::cout << "range name:" << s.name << std::endl;
-//     for (auto const& combo : s.combos)
-//     {
-//       std::cout << combo << std::endl;
-//     }
-//     std::cout << "range name:" << _attr(ctx).name << std::endl;
-//   };
-//   auto r = x3::phrase_parse(
-//       begin, end, (lit("[Userdefined]") >> parser::range[ld]), ascii::space);
-//   if (!r)
-//   {
-//     std::cerr << "failed to parse" << std::endl;
-//   }
-// }
-// }
-//
-// BOOST_FUSION_ADAPT_STRUCT(prc::equilab::ast::range, name, combos);
+#include <fstream>
+
+namespace fs = std::filesystem;
+
+namespace prc::equilab
+{
+folder parse(fs::path const& src_file)
+{
+  namespace x3 = boost::spirit::x3;
+
+  std::ifstream ifs(src_file.string(), std::ios::binary);
+  std::string const utf16(std::istreambuf_iterator<char>(ifs), {});
+
+  auto const utf8 = boost::locale::conv::between(utf16, "UTF8", "UTF16-LE");
+  auto const utf32 = boost::locale::conv::utf_to_utf<char32_t>(utf8);
+  x3::error_handler<std::u32string::const_iterator> error_handler(
+      utf32.begin(), utf32.end(), std::cerr);
+
+  auto ctx = x3::with<x3::error_handler_tag>(
+      std::move(error_handler))[equilab::parser::file()];
+
+  std::vector<equilab::parser::ast::entry> entries;
+  auto b = utf32.begin();
+  auto e = utf32.end();
+  auto r = x3::phrase_parse(b, e, ctx, x3::unicode::space, entries);
+  if (!r || b != e)
+    throw std::runtime_error("failed to parse");
+  return prc::folder{"/", entries};
+}
+}
