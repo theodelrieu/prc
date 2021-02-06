@@ -275,7 +275,7 @@ int main(int argc, char const* argv[])
     return 0;
   }
   auto const src_path = fs::absolute(fs::canonical(src));
-  auto const dst_path = fs::absolute(fs::canonical(dst));
+  auto const dst_path = dst;
   // TODO repl
   folder root;
   if (src_format == "pio")
