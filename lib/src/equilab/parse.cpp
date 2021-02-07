@@ -1,10 +1,10 @@
 #include <prc/equilab/parse.hpp>
 
+#include <prc/detail/unicode.hpp>
 #include <prc/equilab/parser/api.hpp>
 
-#include <boost/locale.hpp>
-
 #include <fstream>
+#include <iostream>
 
 namespace fs = std::filesystem;
 
@@ -14,11 +14,11 @@ folder parse(fs::path const& src_file)
 {
   namespace x3 = boost::spirit::x3;
 
-  std::ifstream ifs(src_file.string(), std::ios::binary);
-  std::string const utf16(std::istreambuf_iterator<char>(ifs), {});
+  std::ifstream ifs{src_file.string(), std::ios::binary};
+  std::string content(std::istreambuf_iterator<char>(ifs), {});
+  auto const utf32 = detail::utf16le_to_utf32(std::u16string_view{
+      reinterpret_cast<char16_t const*>(content.data()), content.size() / 2});
 
-  auto const utf8 = boost::locale::conv::between(utf16, "UTF8", "UTF16-LE");
-  auto const utf32 = boost::locale::conv::utf_to_utf<char32_t>(utf8);
   x3::error_handler<std::u32string::const_iterator> error_handler(
       utf32.begin(), utf32.end(), std::cerr);
 

@@ -2,9 +2,9 @@
 #include <fstream>
 #include <iostream>
 
-#include <boost/locale.hpp>
 #include <catch2/catch.hpp>
 
+#include <prc/detail/unicode.hpp>
 #include <prc/equilab/parser/api.hpp>
 #include <prc/equilab/serialize.hpp>
 #include <prc/folder.hpp>
@@ -38,8 +38,8 @@ std::u32string read_all(fs::path const& p)
   }
   std::ifstream ifs{p, std::ios::binary};
   std::string content(std::istreambuf_iterator<char>(ifs), {});
-  auto utf8 = boost::locale::conv::between(content, "UTF8", "UTF16-LE");
-  return boost::locale::conv::utf_to_utf<char32_t>(utf8);
+  return detail::utf16le_to_utf32(std::u16string_view{
+      reinterpret_cast<char16_t const*>(content.data()), content.size() / 2});
 }
 }
 
@@ -480,10 +480,7 @@ TEST_CASE("serialization tests", "[equilab]")
 
     prc::folder folder{"/", entries};
     auto const serialized = equilab::serialize(folder);
-    auto const utf8 =
-        boost::locale::conv::between(serialized, "UTF8", "UTF16-LE");
-    std::cout << utf8 << std::endl;
-    auto const utf32 = boost::locale::conv::utf_to_utf<char32_t>(utf8);
+    auto const utf32 = detail::utf16le_to_utf32(serialized);
     b = utf32.begin();
     e = utf32.end();
     entries.clear();

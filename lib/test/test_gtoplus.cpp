@@ -2,7 +2,6 @@
 #include <fstream>
 #include <iostream>
 
-#include <boost/locale.hpp>
 #include <catch2/catch.hpp>
 
 #include <prc/gtoplus/parser/api.hpp>

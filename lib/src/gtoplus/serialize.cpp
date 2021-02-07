@@ -1,8 +1,7 @@
 #include <prc/gtoplus/serialize.hpp>
 
+#include <prc/detail/unicode.hpp>
 #include <prc/range_elem.hpp>
-
-#include <boost/locale.hpp>
 
 #include <cstring>
 #include <fstream>
@@ -240,10 +239,8 @@ std::string to_radix_double(double d)
 std::string to_utf16_string(std::string const& utf8)
 {
   auto ret = to_little_dword(0x65) + '\xff' + '\xfe';
-  auto const utf16 = boost::locale::conv::between(utf8, "UTF16-LE", "UTF8");
-  if (utf16.size() % 2 != 0)
-    throw std::runtime_error("utf16 size must be an even number");
-  auto const nb_code_units = utf16.size() / 2;
+  auto const utf16 = detail::utf8_to_utf16le(utf8);
+  auto const nb_code_units = utf16.size();
   if (nb_code_units > 30'000)
     throw std::runtime_error("utf16 size must be <= 60 000");
   ret += "\xff";
@@ -258,7 +255,8 @@ std::string to_utf16_string(std::string const& utf8)
   {
     ret += static_cast<char>(nb_code_units);
   }
-  ret += utf16;
+  ret += std::string(reinterpret_cast<char const*>(utf16.data()),
+                     utf16.size() * 2);
   return ret;
 }
 

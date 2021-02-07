@@ -1,6 +1,8 @@
 #include <prc/range_elem.hpp>
 
-#include <boost/locale.hpp>
+#include <prc/detail/unicode.hpp>
+
+#include <iostream>
 
 namespace prc
 {
@@ -62,7 +64,7 @@ range_elem operator"" _re(char const* str, std::size_t n)
 {
   namespace x3 = boost::spirit::x3;
 
-  auto const s = boost::locale::conv::utf_to_utf<char32_t>(str, str + n);
+  auto const s = detail::utf8_to_utf32(std::string_view{str, n});
 
   x3::error_handler<std::u32string::const_iterator> error_handler(
       s.begin(), s.end(), std::cerr);

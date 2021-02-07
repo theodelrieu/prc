@@ -148,7 +148,8 @@ void serialize_to_equilab(folder const& root, fs::path const& dst)
   fs::create_directories(dst.parent_path());
   auto const equilab_content = equilab::serialize(root);
   std::ofstream ofs{dst.string(), std::ios::binary | std::ios::trunc};
-  ofs.write(equilab_content.data(), equilab_content.size());
+  ofs.write(reinterpret_cast<char const*>(equilab_content.data()),
+            2 * equilab_content.size());
   std::cout << "Wrote " << dst << std::endl;
 }
 

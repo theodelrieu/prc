@@ -4,11 +4,11 @@
 #include <boost/fusion/adapted/std_pair.hpp>
 #include <boost/fusion/include/pair.hpp>
 #include <boost/fusion/tuple/tuple_tie.hpp>
-#include <boost/locale.hpp>
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/binary.hpp>
 #include <boost/variant.hpp>
 
+#include <prc/detail/unicode.hpp>
 #include <prc/gtoplus/parser/api.hpp>
 #include <prc/gtoplus/parser/ast.hpp>
 #include <prc/gtoplus/parser/ast_adapted.hpp>
@@ -114,8 +114,8 @@ struct utf16_to_utf8_string_parser : x3::parser<utf16_to_utf8_string_parser>
                    x3::repeat(nb_utf16_code_units)[x3::little_word],
                    utf16_buf))
       return false;
-    attr = boost::locale::conv::utf_to_utf<char>(
-        utf16_buf.data(), utf16_buf.data() + utf16_buf.size());
+    attr = detail::utf16le_to_utf8(
+        std::u16string_view(utf16_buf.data(), utf16_buf.size()));
     first = it;
     return true;
   }

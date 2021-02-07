@@ -2,10 +2,10 @@
 #include <fstream>
 #include <iostream>
 
-#include <boost/locale.hpp>
 #include <catch2/catch.hpp>
 
 #include <prc/combo.hpp>
+#include <prc/detail/unicode.hpp>
 #include <prc/pio/parser/api.hpp>
 #include <prc/range.hpp>
 #include <prc/range_elem.hpp>
@@ -38,7 +38,7 @@ std::u32string read_all(fs::path const& p)
   }
   std::ifstream ifs{p};
   std::string content(std::istreambuf_iterator<char>(ifs), {});
-  return boost::locale::conv::utf_to_utf<char32_t>(content);
+  return detail::utf8_to_utf32(content);
 }
 
 std::vector<prc::combo> weights_to_combos(

@@ -19,6 +19,7 @@ add_library(libprc
   src/folder.cpp
   src/card.cpp
   src/api_def.cpp
+  src/detail/unicode.cpp
 )
 
 set_target_properties(libprc PROPERTIES PREFIX "")
@@ -30,7 +31,7 @@ target_include_directories(libprc
 )
 target_compile_definitions(libprc PUBLIC BOOST_SPIRIT_X3_UNICODE)
 
-target_link_libraries(libprc CONAN_PKG::boost CONAN_PKG::mgs)
+target_link_libraries(libprc CONAN_PKG::boost CONAN_PKG::icu) 
 
 if (BUILD_TESTING)
   add_subdirectory(test)

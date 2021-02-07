@@ -1,7 +1,8 @@
 #include <prc/equilab/serialize.hpp>
 
+#include <prc/detail/unicode.hpp>
+
 #include <boost/algorithm/string/join.hpp>
-#include <boost/locale.hpp>
 
 #include <cassert>
 #include <iomanip>
@@ -120,17 +121,11 @@ private:
 };
 }
 
-std::string serialize(prc::folder const& f)
+std::u16string serialize(prc::folder const& f)
 {
   std::string content = "[Userdefined]\n";
   for (auto const& entry : f.entries())
     content += boost::variant2::visit(serializer{}, entry);
-  auto r = boost::locale::conv::between(content, "UTF16-LE", "UTF8");
-  auto p = r.find("\xc2\xb0");
-  if (p != std::string::npos)
-  {
-    std::cerr << "Found UTF8 after serializing: " << p << std::endl;
-  }
-  return r;
+  return detail::utf8_to_utf16le(content);
 }
 }

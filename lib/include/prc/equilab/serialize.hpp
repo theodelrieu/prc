@@ -7,5 +7,5 @@
 
 namespace prc::equilab
 {
-std::string serialize(prc::folder const&);
+std::u16string serialize(prc::folder const&);
 }

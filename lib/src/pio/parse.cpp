@@ -1,8 +1,8 @@
 #include <prc/pio/parse.hpp>
 
+#include <prc/detail/unicode.hpp>
 #include <prc/pio/parser/api.hpp>
 
-#include <boost/locale.hpp>
 #include <boost/spirit/home/x3.hpp>
 
 #include <fstream>
@@ -24,7 +24,7 @@ std::u32string read_all(fs::path const& p)
     throw std::runtime_error("invalid pio range path: " + p.string());
   std::ifstream ifs{p};
   std::string content(std::istreambuf_iterator<char>(ifs), {});
-  return boost::locale::conv::utf_to_utf<char32_t>(content);
+  return detail::utf8_to_utf32(content);
 }
 }
 

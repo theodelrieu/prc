@@ -4,11 +4,11 @@
 #include <iostream>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/locale.hpp>
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/binary.hpp>
 #include <boost/variant.hpp>
 
+#include <prc/detail/unicode.hpp>
 #include <prc/equilab/parser/api.hpp>
 #include <prc/equilab/parser/ast.hpp>
 #include <prc/equilab/parser/ast_adapted.hpp>
@@ -68,8 +68,8 @@ auto const rgb_string_to_int = [](auto& ctx) {
 };
 auto const utf32_to_utf8 = [](auto& ctx) {
   auto& vec = _attr(ctx);
-  _val(ctx) = boost::locale::conv::utf_to_utf<char>(vec.data(),
-                                                    vec.data() + vec.size());
+  _val(ctx) =
+      detail::utf32_to_utf8(std::u32string_view(vec.data(), vec.size()));
   boost::trim(_val(ctx));
 };
 
