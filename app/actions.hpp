@@ -17,8 +17,10 @@ range_action replace_in_range_name(std::string const& old_str,
 range_action change_color(std::string const& range_name, int rgb);
 range_action change_color_ends_with(std::string const& str, int rgb);
 range_action move_subrange_at_end(std::string const& range_name);
+range_action move_color_at_end(int);
 range_action set_unassigned_to_subrange(std::string const& range_name, int rgb);
 range_action count_max_ranges();
+range_action percents_to_bb();
 }
 
 inline namespace folder_actions

@@ -320,8 +320,10 @@ folder_action remove_useless_ranges()
                        [&](auto& e) {
                          if (auto p = boost::variant2::get_if<range>(&e))
                          {
-                           auto b = has_only_fold(*p) || has_no_subranges(*p) ||
-                                    has_too_many_players(*p);
+                           // auto b = has_only_fold(*p) || has_no_subranges(*p)
+                           // ||
+                           //          has_too_many_players(*p);
+                           auto b = has_no_subranges(*p);
                            if (b)
                            {
                              std::cout << "Removing "
@@ -444,11 +446,105 @@ range_action move_subrange_at_end(std::string const& range_name)
   };
 }
 
+range_action move_color_at_end(int rgb)
+{
+  return [rgb](range& r, fs::path const& abs_parent_path) {
+    auto const end = r.subranges().end();
+    auto it = std::find_if(
+        r.subranges().begin(), end, [&](auto& s) { return s.rgb() == rgb; });
+    if (it != end)
+      std::rotate(it, it + 1, end);
+  };
+}
+
 range_action count_max_ranges()
 {
   return [](range& r, fs::path const& abs_parent_path) {
     std::cout << recurse_count_subranges(r) << " groups in "
               << abs_parent_path / r.name() << std::endl;
+  };
+}
+
+// TODO refactor this mess
+range_action percents_to_bb()
+{
+  return [](range& r, fs::path const& abs_parent_path) {
+    if (!boost::algorithm::contains(r.name(), "%"))
+      return;
+    auto parts = parse_range_name(r.name());
+    if (parts.empty())
+      return;
+
+    auto current_pot = 2.5;
+    auto last_bet = 1.0;
+
+    for (auto& [pos, action] : parts)
+    {
+      if (action == "Fold")
+        continue;
+      else if (boost::algorithm::ends_with(action, "bb"))
+      {
+        double bbs = 0;
+        x3::phrase_parse(action.begin(),
+                         action.end(),
+                         x3::double_ >> x3::lit("bb"),
+                         x3::space,
+                         bbs);
+        last_bet = bbs;
+      }
+      else if (boost::algorithm::ends_with(action, "%"))
+      {
+        double percent = 0;
+        x3::phrase_parse(action.begin(),
+                         action.end(),
+                         x3::double_ >> x3::lit("%"),
+                         x3::space,
+                         percent);
+        auto const new_last_bet =
+            last_bet + ((current_pot + last_bet) * (percent / 100.f));
+        // when RFI percent is 28%, it gives 1.98, the actual percent is
+        // around 28.6, which is not in the range name
+        last_bet = std::max(new_last_bet, 2 * last_bet);
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(2) << last_bet;
+        action = ss.str();
+        if (action.back() == '0')
+          action.pop_back();
+        action += "bb";
+      }
+      current_pot += last_bet;
+    }
+
+    std::string new_str;
+    for (auto const& [pos, action] : parts)
+      new_str += pos + '_' + action + '_';
+    new_str.pop_back();
+    // don't care about nesting
+    for (auto& sub : r.subranges())
+    {
+      if (boost::algorithm::ends_with(sub.name(), "%"))
+      {
+        double percent = 0;
+        x3::phrase_parse(sub.name().begin(),
+                         sub.name().end(),
+                         x3::double_ >> x3::lit("%"),
+                         x3::space,
+                         percent);
+        last_bet = last_bet + ((current_pot + last_bet) * (percent / 100.f));
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(2) << last_bet;
+        auto action = ss.str();
+        if (action.back() == '0')
+          action.pop_back();
+        action += "bb";
+        std::cout << abs_parent_path / r.name() / sub.name() << ": rename to "
+                  << action << std::endl;
+        sub.set_name(action);
+      }
+    }
+    std::cout << abs_parent_path / r.name() << ": rename to " << new_str
+              << std::endl;
+    r.set_name(new_str);
   };
 }
 }

@@ -221,24 +221,31 @@ void apply_pio_actions(folder& root)
 {
   apply_to_ranges(root,
                   true,
-                  {actions::replace_in_range_name("FOLD", "Fold"),
-                   actions::replace_in_range_name("__", "%_"),
-                   actions::replace_in_range_name("_POT", "%"),
-                   actions::replace_in_range_name("Raise1", "Raise"),
-                   actions::replace_in_range_name("HalfPot", "50%"),
-                   actions::change_color("Fold", 0xff6da2c0),
-                   actions::change_color("AllIn", 0xff8b0000),
-                   actions::change_color_ends_with("bb", 0xffe9967a),
-                   actions::change_color_ends_with("%", 0xffe9967a),
-                   actions::move_subrange_at_end("Fold")});
+                  {
+                      actions::replace_in_range_name("FOLD", "Fold"),
+                      actions::replace_in_range_name("__", "%_"),
+                      actions::replace_in_range_name("_POT", "%"),
+                      actions::replace_in_range_name("Raise1", "2.0bb"),
+                      actions::change_color("Fold", 0xff6da2c0),
+                      actions::change_color("AllIn", 0xff8b0000),
+                      actions::change_color_ends_with("bb", 0xffe9967a),
+                      actions::change_color_ends_with("%", 0xffe9967a),
+                      actions::move_color_at_end(0xff8b0000),
+                      actions::move_color_at_end(0xffe9967a),
+                      actions::move_color_at_end(0xff8fbc8b),
+                      actions::move_color_at_end(0xff6da2c0),
+                  });
   apply_to_folders(root, actions::remove_useless_ranges());
   apply_to_folders(root, actions::fix_parent_ranges());
-  apply_to_ranges(
-      root, false, {actions::set_unassigned_to_subrange("Fold", 0xff6da2c0)});
+  apply_to_ranges(root,
+                  false,
+                  {actions::percents_to_bb(),
+                   actions::set_unassigned_to_subrange("Fold", 0xff6da2c0)});
 }
 
 void apply_equilab_actions(folder& root)
 {
+  // apply_to_folders(root, actions::remove_useless_ranges());
   // apply_to_ranges(root,
   //                 true,
   //                 {actions::replace_in_range_name("Raise1", "Raise"),
