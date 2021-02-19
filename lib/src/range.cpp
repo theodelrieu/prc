@@ -186,7 +186,7 @@ range::range(equilab::parser::ast::range const& r) : _name(r.name), _rgb(0)
   }
 }
 
-range::range(pio::parser::ast::range const& r)
+range::range(pio::parser::ast::range const& r) : _rgb(0)
 {
   if (r.base_range.weights.size() != nb_total_combos)
     throw std::runtime_error{"base_range does not have 1326 weights"};
