@@ -230,17 +230,14 @@ void apply_pio_actions(folder& root)
                       actions::change_color("AllIn", 0xff8b0000),
                       actions::change_color_ends_with("bb", 0xffe9967a),
                       actions::change_color_ends_with("%", 0xffe9967a),
-                      actions::move_color_at_end(0xff8b0000),
-                      actions::move_color_at_end(0xffe9967a),
-                      actions::move_color_at_end(0xff8fbc8b),
-                      actions::move_color_at_end(0xff6da2c0),
                   });
   apply_to_folders(root, actions::remove_useless_ranges());
   apply_to_folders(root, actions::fix_parent_ranges());
   apply_to_ranges(root,
                   false,
                   {actions::percents_to_bb(),
-                   actions::set_unassigned_to_subrange("Fold", 0xff6da2c0)});
+                   actions::set_unassigned_to_subrange("Fold", 0xff6da2c0),
+                   actions::sort_subranges()});
 }
 
 void apply_equilab_actions(folder& root)

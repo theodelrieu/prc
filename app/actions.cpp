@@ -253,6 +253,20 @@ auto entry_contains(std::string const& str)
     return boost::algorithm::contains(get_entry_name(e), str);
   };
 }
+
+enum range_type
+{
+  all_in,
+  raise,
+  call,
+  fold,
+};
+
+std::map<int, range_type> const rgb_to_range_types{
+    {0xFF8B0000, range_type::all_in},
+    {0xffe9967a, range_type::raise},
+    {0xFF8FBC8B, range_type::call},
+    {0xff6da2c0, range_type::fold}};
 }
 
 inline namespace folder_actions
@@ -446,14 +460,15 @@ range_action move_subrange_at_end(std::string const& range_name)
   };
 }
 
-range_action move_color_at_end(int rgb)
+range_action sort_subranges()
 {
-  return [rgb](range& r, fs::path const& abs_parent_path) {
-    auto const end = r.subranges().end();
-    auto it = std::find_if(
-        r.subranges().begin(), end, [&](auto& s) { return s.rgb() == rgb; });
-    if (it != end)
-      std::rotate(it, it + 1, end);
+  return [](range& r, fs::path const& abs_parent_path) {
+    std::sort(r.subranges().begin(),
+              r.subranges().end(),
+              [](auto const& lhs, auto const& rhs) {
+                return rgb_to_range_types.at(lhs.rgb()) <
+                       rgb_to_range_types.at(rhs.rgb());
+              });
   };
 }
 
