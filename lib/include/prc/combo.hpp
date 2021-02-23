@@ -13,6 +13,7 @@
 namespace prc
 {
 class range_elem;
+class hand;
 
 class combo
 {
@@ -49,6 +50,7 @@ std::ostream& operator<<(std::ostream&, combo const&);
 
 std::vector<combo> expand_combos(range_elem const&);
 std::vector<combo> expand_combos(std::vector<range_elem> const&);
+std::vector<hand> expand_hands(std::vector<range_elem> const&);
 
 std::vector<range_elem> reduce_combos(std::vector<combo> const&);
 

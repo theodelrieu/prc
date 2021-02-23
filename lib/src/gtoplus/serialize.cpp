@@ -131,16 +131,6 @@ std::string rgb_to_string(int rgb)
   return buf;
 }
 
-std::vector<prc::range_elem> expand_hands(
-    std::vector<prc::range_elem> const& elems)
-{
-  std::vector<prc::range_elem> ret;
-  range_elem_expander exp{std::back_inserter(ret)};
-  for (auto const& elem : elems)
-    elem.visit(exp);
-  return ret;
-}
-
 void percents_to_ratios(hand_info& info)
 {
   auto it = std::min_element(
@@ -155,7 +145,7 @@ void percents_to_ratios(hand_info& info)
 }
 
 std::optional<hand_info> get_hand_info(
-    prc::range_elem const& re,
+    prc::hand const& h,
     std::vector<prc::range> const& subranges,
     std::vector<group_name_rgb> const& group_names_rgbs)
 {
@@ -166,7 +156,7 @@ std::optional<hand_info> get_hand_info(
     for (auto const& [w, e] : sub.elems())
     {
       auto const hands = expand_hands(e);
-      auto const it = std::find(hands.begin(), hands.end(), re);
+      auto const it = std::find(hands.begin(), hands.end(), h);
       if (it != hands.end())
       {
         auto const group_name_it = std::find_if(
@@ -193,24 +183,30 @@ std::optional<hand_info> get_hand_info(
 auto const& sorted_hands()
 {
   using namespace prc::literals;
-  // clang-format off
-    static std::vector const hands{
-    "AA"_re, "AKs"_re, "AQs"_re, "AJs"_re, "ATs"_re, "A9s"_re, "A8s"_re, "A7s"_re, "A6s"_re, "A5s"_re, "A4s"_re, "A3s"_re, "A2s"_re,
-    "AKo"_re, "KK"_re, "KQs"_re, "KJs"_re, "KTs"_re, "K9s"_re, "K8s"_re, "K7s"_re, "K6s"_re, "K5s"_re, "K4s"_re, "K3s"_re, "K2s"_re,
-    "AQo"_re, "KQo"_re, "QQ"_re, "QJs"_re, "QTs"_re, "Q9s"_re, "Q8s"_re, "Q7s"_re, "Q6s"_re, "Q5s"_re, "Q4s"_re, "Q3s"_re, "Q2s"_re,
-    "AJo"_re, "KJo"_re, "QJo"_re, "JJ"_re, "JTs"_re, "J9s"_re, "J8s"_re, "J7s"_re, "J6s"_re, "J5s"_re, "J4s"_re, "J3s"_re, "J2s"_re,
-    "ATo"_re, "KTo"_re, "QTo"_re, "JTo"_re, "TT"_re, "T9s"_re, "T8s"_re, "T7s"_re, "T6s"_re, "T5s"_re, "T4s"_re, "T3s"_re, "T2s"_re,
-    "A9o"_re, "K9o"_re, "Q9o"_re, "J9o"_re, "T9o"_re, "99"_re, "98s"_re, "97s"_re, "96s"_re, "95s"_re, "94s"_re, "93s"_re, "92s"_re,
-    "A8o"_re, "K8o"_re, "Q8o"_re, "J8o"_re, "T8o"_re, "98o"_re, "88"_re, "87s"_re, "86s"_re, "85s"_re, "84s"_re, "83s"_re, "82s"_re,
-    "A7o"_re, "K7o"_re, "Q7o"_re, "J7o"_re, "T7o"_re, "97o"_re, "87o"_re, "77"_re, "76s"_re, "75s"_re, "74s"_re, "73s"_re, "72s"_re,
-    "A6o"_re, "K6o"_re, "Q6o"_re, "J6o"_re, "T6o"_re, "96o"_re, "86o"_re, "76o"_re, "66"_re, "65s"_re, "64s"_re, "63s"_re, "62s"_re,
-    "A5o"_re, "K5o"_re, "Q5o"_re, "J5o"_re, "T5o"_re, "95o"_re, "85o"_re, "75o"_re, "65o"_re, "55"_re, "54s"_re, "53s"_re, "52s"_re,
-    "A4o"_re, "K4o"_re, "Q4o"_re, "J4o"_re, "T4o"_re, "94o"_re, "84o"_re, "74o"_re, "64o"_re, "54o"_re, "44"_re, "43s"_re, "42s"_re,
-    "A3o"_re, "K3o"_re, "Q3o"_re, "J3o"_re, "T3o"_re, "93o"_re, "83o"_re, "73o"_re, "63o"_re, "53o"_re, "43o"_re, "33"_re, "32s"_re,
-    "A2o"_re, "K2o"_re, "Q2o"_re, "J2o"_re, "T2o"_re, "92o"_re, "82o"_re, "72o"_re, "62o"_re, "52o"_re, "42o"_re, "32o"_re, "22"_re,
-  };
-  // clang-format on
-  return hands;
+  static auto const ret = []() {
+    // clang-format off
+    std::vector const hands{
+      "AA"_re, "AKs"_re, "AQs"_re, "AJs"_re, "ATs"_re, "A9s"_re, "A8s"_re, "A7s"_re, "A6s"_re, "A5s"_re, "A4s"_re, "A3s"_re, "A2s"_re,
+      "AKo"_re, "KK"_re, "KQs"_re, "KJs"_re, "KTs"_re, "K9s"_re, "K8s"_re, "K7s"_re, "K6s"_re, "K5s"_re, "K4s"_re, "K3s"_re, "K2s"_re,
+      "AQo"_re, "KQo"_re, "QQ"_re, "QJs"_re, "QTs"_re, "Q9s"_re, "Q8s"_re, "Q7s"_re, "Q6s"_re, "Q5s"_re, "Q4s"_re, "Q3s"_re, "Q2s"_re,
+      "AJo"_re, "KJo"_re, "QJo"_re, "JJ"_re, "JTs"_re, "J9s"_re, "J8s"_re, "J7s"_re, "J6s"_re, "J5s"_re, "J4s"_re, "J3s"_re, "J2s"_re,
+      "ATo"_re, "KTo"_re, "QTo"_re, "JTo"_re, "TT"_re, "T9s"_re, "T8s"_re, "T7s"_re, "T6s"_re, "T5s"_re, "T4s"_re, "T3s"_re, "T2s"_re,
+      "A9o"_re, "K9o"_re, "Q9o"_re, "J9o"_re, "T9o"_re, "99"_re, "98s"_re, "97s"_re, "96s"_re, "95s"_re, "94s"_re, "93s"_re, "92s"_re,
+      "A8o"_re, "K8o"_re, "Q8o"_re, "J8o"_re, "T8o"_re, "98o"_re, "88"_re, "87s"_re, "86s"_re, "85s"_re, "84s"_re, "83s"_re, "82s"_re,
+      "A7o"_re, "K7o"_re, "Q7o"_re, "J7o"_re, "T7o"_re, "97o"_re, "87o"_re, "77"_re, "76s"_re, "75s"_re, "74s"_re, "73s"_re, "72s"_re,
+      "A6o"_re, "K6o"_re, "Q6o"_re, "J6o"_re, "T6o"_re, "96o"_re, "86o"_re, "76o"_re, "66"_re, "65s"_re, "64s"_re, "63s"_re, "62s"_re,
+      "A5o"_re, "K5o"_re, "Q5o"_re, "J5o"_re, "T5o"_re, "95o"_re, "85o"_re, "75o"_re, "65o"_re, "55"_re, "54s"_re, "53s"_re, "52s"_re,
+      "A4o"_re, "K4o"_re, "Q4o"_re, "J4o"_re, "T4o"_re, "94o"_re, "84o"_re, "74o"_re, "64o"_re, "54o"_re, "44"_re, "43s"_re, "42s"_re,
+      "A3o"_re, "K3o"_re, "Q3o"_re, "J3o"_re, "T3o"_re, "93o"_re, "83o"_re, "73o"_re, "63o"_re, "53o"_re, "43o"_re, "33"_re, "32s"_re,
+      "A2o"_re, "K2o"_re, "Q2o"_re, "J2o"_re, "T2o"_re, "92o"_re, "82o"_re, "72o"_re, "62o"_re, "52o"_re, "42o"_re, "32o"_re, "22"_re,
+    };
+    // clang-format on
+    std::vector<prc::hand> ret;
+    for (auto& h : hands)
+      ret.push_back(h.get<prc::hand>());
+    return ret;
+  }();
+  return ret;
 }
 
 std::string to_little_word(std::uint16_t n)

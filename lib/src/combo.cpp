@@ -1,6 +1,7 @@
 #include <prc/combo.hpp>
 
 #include <prc/detail/unicode.hpp>
+#include <prc/hand.hpp>
 #include <prc/parser/api.hpp>
 #include <prc/range_elem.hpp>
 
@@ -74,6 +75,32 @@ public:
       (*this)(*f, to.get<paired_hand>());
     else
       (*this)(from.get<unpaired_hand>(), to.get<unpaired_hand>());
+  }
+
+private:
+  std::back_insert_iterator<std::vector<hand>> mutable _out;
+};
+
+class hand_expander
+{
+public:
+  hand_expander(std::back_insert_iterator<std::vector<hand>> out) : _out{out}
+  {
+  }
+
+  void operator()(combo const& c) const
+  {
+    throw std::runtime_error("combos are not supported here");
+  }
+
+  void operator()(hand const& h) const
+  {
+    *_out = h;
+  }
+
+  void operator()(hand_range const& hr) const
+  {
+    hand_range_expander{_out}(hr.from(), hr.to());
   }
 
 private:
@@ -429,6 +456,17 @@ std::vector<prc::combo> expand_combos(std::vector<range_elem> const& elems)
 {
   std::vector<prc::combo> ret;
   combo_expander exp{std::back_inserter(ret)};
+  for (auto const& elem : elems)
+    elem.visit(exp);
+  std::sort(ret.begin(), ret.end());
+  ret.erase(std::unique(ret.begin(), ret.end()), ret.end());
+  return ret;
+}
+
+std::vector<prc::hand> expand_hands(std::vector<range_elem> const& elems)
+{
+  std::vector<prc::hand> ret;
+  hand_expander exp{std::back_inserter(ret)};
   for (auto const& elem : elems)
     elem.visit(exp);
   std::sort(ret.begin(), ret.end());
