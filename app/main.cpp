@@ -242,7 +242,7 @@ void apply_pio_actions(folder& root)
 
 void apply_equilab_actions(folder& root)
 {
-  // apply_to_folders(root, actions::remove_useless_ranges());
+  apply_to_folders(root, actions::remove_useless_ranges());
   // apply_to_ranges(root,
   //                 true,
   //                 {actions::replace_in_range_name("Raise1", "Raise"),

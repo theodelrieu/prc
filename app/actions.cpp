@@ -267,6 +267,16 @@ std::map<int, range_type> const rgb_to_range_types{
     {0xffe9967a, range_type::raise},
     {0xFF8FBC8B, range_type::call},
     {0xff6da2c0, range_type::fold}};
+
+bool contains_percent(range const& r)
+{
+  if (boost::algorithm::contains(r.name(), "%"))
+    return true;
+  return std::any_of(
+      r.subranges().begin(), r.subranges().end(), [](auto const& s) {
+        return boost::algorithm::contains(s.name(), "%");
+      });
+}
 }
 
 inline namespace folder_actions
@@ -334,10 +344,8 @@ folder_action remove_useless_ranges()
                        [&](auto& e) {
                          if (auto p = boost::variant2::get_if<range>(&e))
                          {
-                           // auto b = has_only_fold(*p) || has_no_subranges(*p)
-                           // ||
-                           //          has_too_many_players(*p);
-                           auto b = has_no_subranges(*p);
+                           auto b = has_only_fold(*p) || has_no_subranges(*p) ||
+                                    has_too_many_players(*p);
                            if (b)
                            {
                              std::cout << "Removing "
@@ -484,7 +492,7 @@ range_action count_max_ranges()
 range_action percents_to_bb()
 {
   return [](range& r, fs::path const& abs_parent_path) {
-    if (!boost::algorithm::contains(r.name(), "%"))
+    if (!contains_percent(r))
       return;
     auto parts = parse_range_name(r.name());
     if (parts.empty())
