@@ -501,6 +501,10 @@ range_action percents_to_bb()
     auto current_pot = 2.5;
     auto last_bet = 1.0;
 
+    // TODO refactor ends_with%
+    // keep track of last bet for every position, the count is messed up!!
+    // e.g. SB 0.5, BB 1.0
+    // if raise call then reraise and call, the count is broken!
     for (auto& [pos, action] : parts)
     {
       if (action == "Fold")
