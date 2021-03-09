@@ -99,50 +99,6 @@ void apply_to_folders(folder& root,
     apply_to_folders_impl(root, root.name(), ld);
 }
 
-template <typename I, typename S>
-void recurse_entries(I& current,
-                     S end,
-                     folder& parent_folder,
-                     fs::path const& parent_absolute_path)
-{
-  while (current != end)
-  {
-    auto const& current_path = *current;
-
-    if (current_path.parent_path() != parent_absolute_path)
-      return;
-    if (is_directory(current_path))
-    {
-      folder new_folder{current_path.filename().string()};
-
-      if (++current != end)
-      {
-        auto const& subfolder_path = *current;
-        if (subfolder_path.parent_path() == current_path)
-          recurse_entries(current, end, new_folder, current_path);
-      }
-      if (!new_folder.entries().empty())
-      {
-        std::cout << "Adding folder: " << current_path << std::endl;
-        parent_folder.add_entry(std::move(new_folder));
-      }
-    }
-    else
-    {
-      if (current_path.extension() != ".txt")
-        std::cout << "Skipping non-pio file: " << current_path << std::endl;
-      else
-      {
-        std::cout << "Adding range: " << current_path << std::endl;
-        auto range = pio::parse(current_path);
-        range.set_name(current_path.stem());
-        parent_folder.add_entry(std::move(range));
-      }
-      ++current;
-    }
-  }
-}
-
 void serialize_to_equilab(folder const& root, fs::path const& dst)
 {
   fs::create_directories(dst.parent_path());
@@ -199,22 +155,6 @@ void serialize_to_pio(folder const& root, fs::path const& dst)
   serialize_to_pio_impl(root, tmp_path);
   fs::rename(tmp_path, dst);
   std::cout << "Renamed " << tmp_path << " to " << dst << std::endl;
-}
-
-folder load_pio_folder(fs::path const& src)
-{
-  std::vector<fs::path> paths;
-  for (auto& p : fs::recursive_directory_iterator{src})
-    paths.push_back(p.path());
-  if (paths.empty())
-    throw std::runtime_error{"empty src directory: " + src.string()};
-  std::sort(paths.begin(), paths.end());
-
-  prc::folder root{"/"};
-  auto begin = paths.begin();
-  auto const end = paths.end();
-  recurse_entries(begin, end, root, src);
-  return root;
 }
 
 void apply_pio_actions(folder& root)
@@ -291,7 +231,7 @@ int main(int argc, char const* argv[])
                 << std::endl;
       return -1;
     }
-    root = load_pio_folder(src_path);
+    root = pio::parse_folder(src_path);
     apply_pio_actions(root);
   }
   else if (src_format == "equilab")

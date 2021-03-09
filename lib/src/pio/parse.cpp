@@ -26,9 +26,57 @@ std::u32string read_all(fs::path const& p)
   std::string content(std::istreambuf_iterator<char>(ifs), {});
   return detail::utf8_to_utf32(content);
 }
+
+template <typename I, typename S>
+void recurse_entries(I& current,
+                     S end,
+                     folder& parent_folder,
+                     fs::path const& parent_absolute_path)
+{
+  while (current != end)
+  {
+    auto const& current_path = *current;
+
+    if (current_path.parent_path() != parent_absolute_path)
+      return;
+    if (is_directory(current_path))
+    {
+      folder new_folder{current_path.filename().string()};
+
+      if (++current != end)
+      {
+        auto const& subfolder_path = *current;
+        if (subfolder_path.parent_path() == current_path)
+          recurse_entries(current, end, new_folder, current_path);
+      }
+      if (!new_folder.entries().empty())
+        parent_folder.add_entry(std::move(new_folder));
+    }
+    else
+    {
+      if (current_path.extension() == ".txt")
+      {
+        // TODO report error through a callback that could be used to show
+        // progress bar?
+        try
+        {
+          auto range = parse_range(current_path);
+          range.set_name(current_path.stem());
+          parent_folder.add_entry(std::move(range));
+        }
+        catch (std::exception const& e)
+        {
+          std::cerr << "An exception occurred while parsing " << current_path
+                    << ": " << e.what() << std::endl;
+        }
+      }
+      ++current;
+    }
+  }
+}
 }
 
-prc::range parse(fs::path const& pio_range_path)
+prc::range parse_range(fs::path const& pio_range_path)
 {
   auto const content = read_all(pio_range_path);
 
@@ -40,5 +88,21 @@ prc::range parse(fs::path const& pio_range_path)
   parser::ast::range r;
   x3::phrase_parse(content.begin(), content.end(), ctx, x3::unicode::space, r);
   return prc::range{r};
+}
+
+folder parse_folder(fs::path const& pio_folder_path)
+{
+  prc::folder root{"/"};
+  std::vector<fs::path> paths;
+
+  for (auto& p : fs::recursive_directory_iterator{pio_folder_path})
+    paths.push_back(p.path());
+  if (paths.empty())
+    return root;
+  std::sort(paths.begin(), paths.end());
+  auto begin = paths.begin();
+  auto const end = paths.end();
+  recurse_entries(begin, end, root, pio_folder_path);
+  return root;
 }
 }
