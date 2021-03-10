@@ -165,6 +165,7 @@ void apply_pio_actions(folder& root)
                       actions::replace_in_range_name("FOLD", "Fold"),
                       actions::replace_in_range_name("__", "%_"),
                       actions::replace_in_range_name("_POT", "%"),
+                      actions::replace_in_range_name("POT", ""),
                       actions::replace_in_range_name("Raise1", "2.0bb"),
                       actions::change_color("Fold", 0xff6da2c0),
                       actions::change_color("AllIn", 0xff8b0000),
@@ -182,7 +183,8 @@ void apply_pio_actions(folder& root)
 
 void apply_equilab_actions(folder& root)
 {
-  apply_to_folders(root, actions::remove_useless_ranges());
+  apply_to_folders(root, actions::nest_parent_ranges());
+  // apply_to_folders(root, actions::remove_useless_ranges());
   // apply_to_ranges(root,
   //                 true,
   //                 {actions::replace_in_range_name("Raise1", "Raise"),

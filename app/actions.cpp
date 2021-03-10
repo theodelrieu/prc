@@ -36,7 +36,7 @@ BOOST_SPIRIT_DEFINE(_range_name);
 
 struct flattened_range
 {
-  fs::path parent_path;
+  fs::path fullpath;
   prc::folder* parent_folder;
   prc::range* range;
 };
@@ -196,13 +196,19 @@ std::vector<flattened_range> flatten_ranges(folder& f,
   std::vector<flattened_range> flattened_ranges;
   recurse_fill_ranges(f, current_path, flattened_ranges);
 
-  std::sort(flattened_ranges.begin(),
-            flattened_ranges.end(),
-            [](auto& lhs, auto& rhs) {
-              if (lhs.range->name().size() == rhs.range->name().size())
-                return lhs.range->name() < rhs.range->name();
-              return lhs.range->name().size() < rhs.range->name().size();
-            });
+  std::sort(
+      flattened_ranges.begin(),
+      flattened_ranges.end(),
+      [](auto& lhs, auto& rhs) {
+        if (lhs.fullpath.parent_path() == rhs.fullpath.parent_path())
+        {
+          if (lhs.fullpath.string().size() == rhs.fullpath.string().size())
+            return lhs.fullpath.string() < rhs.fullpath.string();
+          return lhs.fullpath.string().size() < rhs.fullpath.string().size();
+        }
+        return lhs.fullpath.parent_path().string() <
+               rhs.fullpath.parent_path().string();
+      });
   return flattened_ranges;
 }
 
@@ -224,8 +230,8 @@ std::vector<parent_child_range> find_parent_ranges(
       {
         parent_ranges.push_back({parent_it->range,
                                  it->range,
-                                 parent_it->parent_path,
-                                 it->parent_path,
+                                 parent_it->fullpath,
+                                 it->fullpath,
                                  it->parent_folder,
                                  std::move(info->subrange_name)});
       }
@@ -387,7 +393,10 @@ folder_action nest_parent_ranges()
       nest_range(*it);
     // we can remove now, iterators can be invalidated
     for (auto it = parent_ranges.rbegin(); it != parent_ranges.rend(); ++it)
+    {
       it->child_parent_folder->remove_entry(it->child_path.filename().string());
+      std::cout << "removed " << it->child_path << std::endl;
+    }
     return true;
   };
 }
@@ -500,6 +509,14 @@ range_action percents_to_bb()
 
     auto current_pot = 2.5;
     auto last_bet = 1.0;
+    std::map<std::string, double> positions_last_bet{{"UTG", 0},
+                                                     {"UTG+1", 0},
+                                                     {"LJ", 0},
+                                                     {"HJ", 0},
+                                                     {"CO", 0},
+                                                     {"BTN", 0},
+                                                     {"SB", 0.5},
+                                                     {"BB", 1}};
 
     // TODO refactor ends_with%
     // keep track of last bet for every position, the count is messed up!!
@@ -527,8 +544,9 @@ range_action percents_to_bb()
                          x3::double_ >> x3::lit("%"),
                          x3::space,
                          percent);
+        auto const amount_to_call = last_bet - positions_last_bet.at(pos);
         auto const new_last_bet =
-            last_bet + ((current_pot + last_bet) * (percent / 100.f));
+            last_bet + (current_pot + amount_to_call) * (percent / 100.f);
         // when RFI percent is 28%, it gives 1.98, the actual percent is
         // around 28.6, which is not in the range name
         last_bet = std::max(new_last_bet, 2 * last_bet);
@@ -539,7 +557,8 @@ range_action percents_to_bb()
           action.pop_back();
         action += "bb";
       }
-      current_pot += last_bet;
+      current_pot += last_bet - positions_last_bet.at(pos);
+      positions_last_bet.at(pos) = last_bet;
     }
 
     std::string new_str;
@@ -557,9 +576,13 @@ range_action percents_to_bb()
                          x3::double_ >> x3::lit("%"),
                          x3::space,
                          percent);
-        last_bet = last_bet + ((current_pot + last_bet) * (percent / 100.f));
+
+        auto const amount_to_call =
+            last_bet - positions_last_bet.at(parts.back().first);
+        auto const final_bet =
+            last_bet + (current_pot + amount_to_call) * (percent / 100.f);
         std::stringstream ss;
-        ss << std::fixed << std::setprecision(2) << last_bet;
+        ss << std::fixed << std::setprecision(2) << final_bet;
         auto action = ss.str();
         if (action.back() == '0')
           action.pop_back();

@@ -82,6 +82,7 @@ void folder::add_entry(range const& r)
 
 void folder::remove_entry(std::string const& name)
 {
+  auto s = _entries.size();
   _entries.erase(std::remove_if(_entries.begin(),
                                 _entries.end(),
                                 [&name](auto& e) {
