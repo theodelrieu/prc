@@ -400,6 +400,30 @@ folder_action nest_parent_ranges()
     return true;
   };
 }
+
+folder_action remove_empty_folders()
+{
+  return [](auto& f, fs::path const& current_path) {
+    auto& entries = f.entries();
+    entries.erase(
+        std::remove_if(entries.begin(),
+                       entries.end(),
+                       [&](auto& e) {
+                         if (auto p = boost::variant2::get_if<folder>(&e))
+                         {
+                           if (p->entries().empty())
+                           {
+                             std::cout << "removing empty folder: "
+                                       << current_path / p->name() << std::endl;
+                             return true;
+                           }
+                         }
+                         return false;
+                       }),
+        entries.end());
+    return true;
+  };
+}
 }
 
 inline namespace range_actions

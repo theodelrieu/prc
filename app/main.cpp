@@ -184,6 +184,7 @@ void apply_pio_actions(folder& root)
 void apply_equilab_actions(folder& root)
 {
   apply_to_folders(root, actions::nest_parent_ranges());
+  apply_to_folders(root, actions::remove_empty_folders());
   // apply_to_folders(root, actions::remove_useless_ranges());
   // apply_to_ranges(root,
   //                 true,

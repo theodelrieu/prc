@@ -28,5 +28,6 @@ inline namespace folder_actions
 folder_action fix_parent_ranges();
 folder_action nest_parent_ranges();
 folder_action remove_useless_ranges();
+folder_action remove_empty_folders();
 }
 }
